@@ -17,9 +17,11 @@ import {
   Button,
   Pressable,
 } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function BrewHub() {
   type CoffeeTab = "iced" | "hot";
+  const router = useRouter();
 
   const coffeeItems = {
     iced: [
@@ -95,7 +97,7 @@ export default function BrewHub() {
             </View>
             <Text className="text-white font-bold text-xl">BREW HUB</Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/cartorders")}>
             <ShoppingCart color="white" size={24} />
           </TouchableOpacity>
         </View>

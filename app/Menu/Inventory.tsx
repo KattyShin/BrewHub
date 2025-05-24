@@ -77,8 +77,6 @@ export default function BrewHub() {
   const [activeTab, setActiveTab] = useState<CoffeeTab>("hot");
   const [searchText, setSearchText] = useState("");
 
-  // Debug log to verify active tab changes
-  console.log("Active tab:", activeTab);
 
   // Filter items based on search text
   const filteredItems =

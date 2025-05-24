@@ -6,9 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert // Added Alert import
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 
 export default function AddProduct() {
@@ -32,122 +35,114 @@ export default function AddProduct() {
     setPrice("");
   };
 
+  const showConfirmation = () => {
+    Alert.alert(
+      "Confirm",
+      "Are you sure you want to add this product?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "OK", 
+          onPress: () => {
+            handleAddProduct();
+            Alert.alert("Success", "Product added successfully!");
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#fef7ed" }}>
-      {/* Back Button */}
-    <TouchableOpacity
-     
-      onPress={() => router.push("/Menu/Inventory")}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      className="flex-1 bg-[#fef7ed]"
     >
-      <Text className="text-black text-base flex flex-row items-center" >
-        <ChevronLeft /> Back
-      </Text>
-    </TouchableOpacity>
-
-      {/* Form */}
-      <View
-        style={{
-          marginHorizontal: 16,
-          padding: 16,
-          backgroundColor: "#fff",
-          borderRadius: 8,
-          shadowColor: "#000",
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 2,
-        }}
+      <ScrollView
+        contentContainerStyle={{ padding: 16 }}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Name Field */}
-        <Text style={{ fontSize: 16, marginBottom: 8 }}>Name</Text>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter product name"
-          style={{
-            backgroundColor: "#f3f3f3",
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 16,
-          }}
-        />
-
-        {/* Description Field */}
-        <Text style={{ fontSize: 16, marginBottom: 8 }}>Description</Text>
-        <TextInput
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Enter product description"
-          style={{
-            backgroundColor: "#f3f3f3",
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 16,
-          }}
-        />
-
-        {/* Category Field */}
-        <Text style={{ fontSize: 16, marginBottom: 8 }}>Category</Text>
-        <View
-          style={{
-            backgroundColor: "#f3f3f3",
-            borderRadius: 8,
-            marginBottom: 16,
-          }}
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/Menu/Inventory")}
+          className="flex-row items-center mb-6"
         >
-          <Picker
-            selectedValue={category}
-            onValueChange={(itemValue) => setCategory(itemValue)}
-          >
-            <Picker.Item label="Select a category" value="" />
-            <Picker.Item label="Hot Coffee" value="hot" />
-            <Picker.Item label="Iced Coffee" value="iced" />
-          </Picker>
+          <ChevronLeft size={20} color="#000" />
+          <Text className="text-black text-base ml-2 font-semibold">Back</Text>
+        </TouchableOpacity>
+
+        {/* Form Container */}
+
+        <View className="flex h-full justify-between mt-10 bg-white rounded-xl p-5  h-full shadow-md w-full max-w-md mx-auto">
+          <View>
+            <Text className="flex justify text-xl font-bold py-5">Add Product</Text>
+            {/* Name Field */}
+            <Text className="text-base mb-2 font-semibold">Name</Text>
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="Enter product name"
+              className="bg-gray-200 py-3 px-4 rounded-lg mb-5 text-base"
+              returnKeyType="next"
+            />
+
+            {/* Description Field */}
+            <Text className="text-base mb-2 font-semibold">Description</Text>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Enter product description"
+              multiline
+              numberOfLines={3}
+              className="bg-gray-200 py-3 px-4 rounded-lg mb-5 text-base text-top"
+              returnKeyType="next"
+            />
+
+            {/* Category Field */}
+            <Text className="text-base mb-2 font-semibold">Category</Text>
+            <View className="bg-gray-200 rounded-lg mb-5 overflow-hidden">
+              <Picker
+                selectedValue={category}
+                onValueChange={(itemValue) => setCategory(itemValue)}
+                style={{ height: 50 }}
+              >
+                <Picker.Item label="Select a category" value="" />
+                <Picker.Item label="Hot Coffee" value="hot" />
+                <Picker.Item label="Iced Coffee" value="iced" />
+              </Picker>
+            </View>
+
+            {/* Price Field */}
+            <Text className="text-base mb-2 font-semibold">Price</Text>
+            <TextInput
+              value={price}
+              onChangeText={setPrice}
+              placeholder="Enter product price"
+              keyboardType="numeric"
+              className="bg-gray-200 py-3 px-4 rounded-lg mb-2 text-base"
+              returnKeyType="done"
+            />
+          </View>
+
+          {/* Buttons */}
+          <View className="flex-row justify-between mt-6 w-full max-w-md">
+            <TouchableOpacity
+              onPress={showConfirmation}
+              className="flex-1 bg-[#D97706] py-4 rounded-lg mr-2 items-center"
+            >
+              <Text className="text-white text-base font-semibold">Add</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleCancel}
+              className="flex-1 bg-black py-4 rounded-lg ml-2 items-center"
+            >
+              <Text className="text-white text-base font-semibold">Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        {/* Price Field */}
-        <Text style={{ fontSize: 16, marginBottom: 8 }}>Price</Text>
-        <TextInput
-          value={price}
-          onChangeText={setPrice}
-          placeholder="Enter product price"
-          keyboardType="numeric"
-          style={{
-            backgroundColor: "#f3f3f3",
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 16,
-          }}
-        />
-      </View>
-
-      {/* Buttons */}
-      <View style={{ marginHorizontal: 16, marginTop: 16 }}>
-        <TouchableOpacity
-          onPress={handleAddProduct}
-          style={{
-            backgroundColor: "#D97706",
-            padding: 16,
-            borderRadius: 8,
-            marginBottom: 8,
-          }}
-        >
-          <Text style={{ color: "#fff", textAlign: "center", fontSize: 16 }}>
-            Add
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleCancel}
-          style={{
-            backgroundColor: "#000",
-            padding: 16,
-            borderRadius: 8,
-          }}
-        >
-          <Text style={{ color: "#fff", textAlign: "center", fontSize: 16 }}>
-            Cancel
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
