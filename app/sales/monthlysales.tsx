@@ -21,57 +21,63 @@ import {
 
 const { width } = Dimensions.get("window");
 
-const DailySales = () => {
+const MonthlySales = () => {
   const router = useRouter();
   const [salesData, setSalesData] = useState([
     {
       id: "1",
-      date: "2025-01-12",
-      time: "11:34 PM",
-      totalSales: 248.75,
-      transactionCount: 12,
+      month: "2025-01",
+      monthName: "January 2025",
+      totalSales: 7542.75,
+      transactionCount: 312,
+      dailyAverage: 243.31,
       status: "completed",
     },
     {
       id: "2",
-      date: "2025-01-11",
-      time: "10:45 PM",
-      totalSales: 195.5,
-      transactionCount: 8,
+      month: "2024-12",
+      monthName: "December 2024",
+      totalSales: 8195.5,
+      transactionCount: 398,
+      dailyAverage: 264.37,
       status: "completed",
     },
     {
       id: "3",
-      date: "2025-01-10",
-      time: "11:15 PM",
-      totalSales: 312.25,
-      transactionCount: 15,
+      month: "2024-11",
+      monthName: "November 2024",
+      totalSales: 6812.25,
+      transactionCount: 267,
+      dailyAverage: 227.08,
       status: "completed",
     },
     {
       id: "4",
-      date: "2025-01-09",
-      time: "9:30 PM",
-      totalSales: 175.0,
-      transactionCount: 6,
+      month: "2024-10",
+      monthName: "October 2024",
+      totalSales: 7235.0,
+      transactionCount: 289,
+      dailyAverage: 233.39,
       status: "completed",
     },
     {
       id: "5",
-      date: "2025-01-08",
-      time: "10:20 PM",
-      totalSales: 285.8,
-      transactionCount: 11,
+      month: "2024-09",
+      monthName: "September 2024",
+      totalSales: 6985.8,
+      transactionCount: 278,
+      dailyAverage: 232.86,
       status: "completed",
     },
   ]);
 
   interface SaleItem {
     id: string;
-    date: string;
-    time: string;
+    month: string;
+    monthName: string;
     totalSales: number;
     transactionCount: number;
+    dailyAverage: number;
     status: string;
   }
 
@@ -82,27 +88,27 @@ const DailySales = () => {
     })}`;
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+  const formatMonth = (monthString: string): string => {
+    const [year, month] = monthString.split("-");
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    const currentDate = new Date();
 
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
+    if (
+      date.getFullYear() === currentDate.getFullYear() &&
+      date.getMonth() === currentDate.getMonth()
+    ) {
+      return "This Month";
+    } else if (
+      date.getFullYear() === currentDate.getFullYear() &&
+      date.getMonth() === currentDate.getMonth() - 1
+    ) {
+      return "Last Month";
     } else {
       return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
+        month: "long",
         year: "numeric",
       });
     }
-  };
-
-  const formatTime = (timeString: string): string => {
-    return timeString;
   };
 
   const salesStats = useMemo(() => {
@@ -114,68 +120,74 @@ const DailySales = () => {
       (sum, item) => sum + item.transactionCount,
       0
     );
-    const averageSale =
-      totalTransactions > 0 ? totalSales / totalTransactions : 0;
-    const highestSale = Math.max(...salesData.map((item) => item.totalSales));
+    const averageMonthlySale =
+      salesData.length > 0 ? totalSales / salesData.length : 0;
+    const highestMonthlySale = Math.max(
+      ...salesData.map((item) => item.totalSales)
+    );
 
     return {
       totalSales,
       totalTransactions,
-      averageSale,
-      highestSale,
+      averageMonthlySale,
+      highestMonthlySale,
     };
   }, [salesData]);
 
   const handleSalePress = (item: SaleItem) => {
     Alert.alert(
-      "Sale Details",
-      `Date: ${formatDate(item.date)}\nTime: ${item.time}\nTransactions: ${
+      "Monthly Sales Details",
+      `Month: ${formatMonth(item.month)}\nTransactions: ${
         item.transactionCount
-      }\nTotal: ${formatCurrency(item.totalSales)}`,
+      }\nDaily Average: ${formatCurrency(
+        item.dailyAverage
+      )}\nTotal: ${formatCurrency(item.totalSales)}`,
       [{ text: "OK" }]
     );
   };
 
   const renderSalesItem = ({ item }: { item: SaleItem }) => (
-    <View className="bg-white rounded-lg shadow-md mb-4 p-4">
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1">
-          <View className="flex-row items-center mb-2">
-            <Calendar size={16} color="#266BE9" />
-            <Text className="text-lg font-bold text-gray-900 ml-2">
-              {formatDate(item.date)}
-            </Text>
-          </View>
-
-          <View className="flex-row items-center mb-3">
-            <Clock size={14} color="#24A311" />
-            <Text className="text-sm text-gray-600 ml-2">
-              {formatTime(item.time)}
-            </Text>
-          </View>
-
-          <View className="flex-row items-center">
-            <View className="bg-orange-50 px-3 py-1 rounded-full border border-blu-200">
-              <Text className="text-xs font-semibold text-blue-500">
-                {item.transactionCount} transactions
+    <TouchableOpacity onPress={() => handleSalePress(item)} activeOpacity={0.7}>
+      <View className="bg-white rounded-lg shadow-md mb-4 p-4">
+        <View className="flex-row justify-between items-start">
+          <View className="flex-1">
+            <View className="flex-row items-center mb-2">
+              <Calendar size={16} color="#D97706" />
+              <Text className="text-lg font-bold text-gray-900 ml-2">
+                {formatMonth(item.month)}
               </Text>
             </View>
-          </View>
-        </View>
 
-        <View className="items-end">
-          <View className="flex-row items-center mb-1">
-            <DollarSign size={16} color="#D97706" />
-            <Text className="text-xs text-orange-600 font-medium ml-1">
-              Total Sales
+            <View className="flex-row items-center mb-3">
+              <TrendingUp size={14} color="#F59E0B" />
+              <Text className="text-sm text-gray-600 ml-2">
+                Daily Avg: {formatCurrency(item.dailyAverage)}
+              </Text>
+            </View>
+
+            <View className="flex-row items-center">
+              <View className="bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                <Text className="text-xs font-semibold text-orange-700">
+                  {item.transactionCount} transactions
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="items-end">
+            <View className="flex-row items-center mb-1">
+              <DollarSign size={16} color="#D97706" />
+              <Text className="text-xs text-orange-600 font-medium ml-1">
+                Monthly Total
+              </Text>
+            </View>
+            <Text className="text-2xl font-bold text-orange-600">
+              {formatCurrency(item.totalSales)}
             </Text>
           </View>
-          <Text className="text-2xl font-bold text-orange-600">
-            {formatCurrency(item.totalSales)}
-          </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderEmptyState = () => (
@@ -184,10 +196,11 @@ const DailySales = () => {
         <DollarSign size={48} color="#D97706" />
       </View>
       <Text className="text-xl font-semibold text-gray-900 mb-2">
-        No Sales Data
+        No Monthly Sales Data
       </Text>
       <Text className="text-gray-600 text-center px-8 mb-6">
-        Your daily sales will appear here once you start recording transactions.
+        Your monthly sales will appear here once you start recording
+        transactions.
       </Text>
     </View>
   );
@@ -213,7 +226,7 @@ const DailySales = () => {
 
         <View className="flex flex-row items-center">
           <View className="flex flex-row">
-            <Text className="text-white font-bold text-lg">DAILY</Text>
+            <Text className="text-white font-bold text-lg">MONTHLY</Text>
             <Text className="text-white font-bold text-lg bg-black px-2">
               SALES
             </Text>
@@ -229,7 +242,6 @@ const DailySales = () => {
         data={salesData}
         renderItem={renderSalesItem}
         keyExtractor={(item) => item.id}
-        // ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={{
           padding: 20,
@@ -243,4 +255,4 @@ const DailySales = () => {
   );
 };
 
-export default DailySales;
+export default MonthlySales;
