@@ -7,7 +7,7 @@ import {
   Coffee,
   Snowflake,
   Edit,
-  Trash2
+  Trash2,
 } from "lucide-react-native";
 import { Card, CardContent, CardTitle } from "components/ui/card";
 import {
@@ -20,10 +20,11 @@ import {
   Pressable,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
+import Header from "../header";
 
 export default function BrewHub() {
   type CoffeeTab = "iced" | "hot";
-  const router = useRouter(); 
+  const router = useRouter();
 
   const coffeeItems = {
     iced: [
@@ -77,7 +78,6 @@ export default function BrewHub() {
   const [activeTab, setActiveTab] = useState<CoffeeTab>("hot");
   const [searchText, setSearchText] = useState("");
 
-
   // Filter items based on search text
   const filteredItems =
     coffeeItems[activeTab]?.filter(
@@ -89,19 +89,18 @@ export default function BrewHub() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#fef7ed" }}>
       {/* Header */}
-      <View className="bg-[#D97706] px-4 py-6">
-        <View className="flex flex-row items-center justify-between mb-2">
-          <View className="flex flex-row items-center gap-2">
-            <View className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <Text className="text-[#D97706] font-bold text-lg">B</Text>
-            </View>
-            <Text className="text-white font-bold text-xl">BREW HUB</Text>
-          </View>
-          <TouchableOpacity>
-            <ShoppingCart color="white" size={24} />
-          </TouchableOpacity>
+      <View
+        style={{
+          backgroundColor: "#D97706",
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+        }}
+      >
+        <View className="flex flex-row items-center justify-between">
+          <Header />
         </View>
-        <Text className="text-[#fed7aa] text-sm">
+
+        <Text className="text-gray-200 text-sm mt-1">
           Premium coffee delivered fresh
         </Text>
       </View>
@@ -121,109 +120,118 @@ export default function BrewHub() {
         </View>
       </View>
       {/* Add Product Button */}
-      <View className="p-4">
-                <TouchableOpacity className="bg-black px-4 py-3 rounded-lg"   onPress={() => router.push("/addproduct")}>
-                    <Text className="text-white font-medium text-center">Add Product</Text>
-                </TouchableOpacity>
-            </View>
 
-            {/* Tab Navigation */}
-            <View className="px-4 mb-6">
-                <View className="flex flex-row bg-gray-200 p-1 rounded-lg">
-                    <Pressable
-                        onPress={() => setActiveTab("iced")}
-                        className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
-                            activeTab === "iced" ? "bg-white" : "bg-transparent"
-                        }`}
-                    >
-                        <Snowflake
-                            size={16}
-                            color={activeTab === "iced" ? "#000" : "#6B7280"}
-                        />
-                        <Text
-                            className={`ml-2 font-medium ${
-                                activeTab === "iced" ? "text-black" : "text-gray-600"
-                            }`}
-                        >
-                            Iced Coffee
-                        </Text>
-                    </Pressable>
+      <View className="p-2 flex flex-row justify-end">
+        <TouchableOpacity
+          className="bg-black w-40 px-4 py-3 rounded-lg"
+          onPress={() => router.push("/addproduct")}
+        >
+          <Text className="text-white font-medium text-center">
+            Add Product
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-                    <Pressable
-                        onPress={() => setActiveTab("hot")}
-                        className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
-                            activeTab === "hot" ? "bg-white" : "bg-transparent"
-                        }`}
-                    >
-                        <Coffee
-                            size={16}
-                            color={activeTab === "hot" ? "#000" : "#6B7280"}
-                        />
-                        <Text
-                            className={`ml-2 font-medium ${
-                                activeTab === "hot" ? "text-black" : "text-gray-600"
-                            }`}
-                        >
-                            Hot Coffee
-                        </Text>
-                    </Pressable>
+      {/* Tab Navigation */}
+      <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+        <View className="flex flex-row bg-gray-200  p-1 mt-2 ">
+          <Pressable
+            onPress={() => setActiveTab("iced")}
+            className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
+              activeTab === "iced" ? "bg-white" : "bg-transparent"
+            }`}
+          >
+            <Snowflake
+              size={16}
+              color={activeTab === "iced" ? "#000" : "#6B7280"}
+              className="mr-1"
+            />
+            <Text
+              className={`ml-2 font-medium ${
+                activeTab === "iced" ? "text-black" : "text-gray-600"
+              }`}
+            >
+              Iced Coffee
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setActiveTab("hot")}
+            className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
+              activeTab === "hot" ? "bg-white" : "bg-transparent"
+            }`}
+          >
+            <Coffee
+              size={16}
+              color={activeTab === "hot" ? "#000" : "#6B7280"}
+              className="mr-1"
+            />
+            <Text
+              className={`ml-2 font-medium ${
+                activeTab === "hot" ? "text-black" : "text-gray-600"
+              }`}
+            >
+              Hot Coffee
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Coffee Items */}
+      <View className="px-4">
+        {filteredItems.map((item) => (
+          <Card
+            key={item.id}
+            className="bg-white shadow-md rounded-lg border-transparent mb-4"
+          >
+            <CardContent className="p-4">
+              <View className="flex flex-row items-center gap-4">
+                {/* Coffee Icon */}
+                <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
+                  {activeTab === "iced" ? <Snowflake /> : <Coffee />}
                 </View>
-            </View>
+                {/* Coffee Details */}
+                <View style={{ flex: 1 }}>
+                  <CardTitle className="text-black text-lg mb-1">
+                    {item.name}
+                  </CardTitle>
+                  <Text className="text-gray-500 text-sm mb-2">
+                    {item.description}
+                  </Text>
+                </View>
 
-            {/* Coffee Items */}
-            <View className="px-4">
-                {filteredItems.map((item) => (
-                    <Card
-                        key={item.id}
-                        className="bg-white shadow-md rounded-lg border-transparent mb-4"
-                    >
-                        <CardContent className="p-4">
-                            <View className="flex flex-row items-center gap-4">
-                                {/* Coffee Image Placeholder */}
-                                <View className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
-                                    <Text className="text-gray-400 text-xs">Image</Text>
-                                </View>
+                {/* Price */}
+                <Text className="text-orange-600 font-bold text-lg">
+                  ₱{item.price.toFixed(1)}
+                </Text>
+              </View>
 
-                                {/* Coffee Details */}
-                                <View style={{ flex: 1 }}>
-                                    <CardTitle className="text-black text-lg mb-1">
-                                        {item.name}
-                                    </CardTitle>
-                                    <Text className="text-gray-500 text-sm mb-2">
-                                        {item.description}
-                                    </Text>
-                                </View>
+              {/* Action Buttons */}
+              <View className="flex flex-row justify-end mt-4 gap-2">
+                <TouchableOpacity
+                  className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
+                  onPress={() => router.push("/edit")}
+                >
+                  <Edit size={16} color="white" />
+                  <Text className="text-white ml-2">Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-red-500 px-4 py-2 rounded-lg flex flex-row items-center">
+                  <Trash2 size={16} color="white" />
+                </TouchableOpacity>
+              </View>
+            </CardContent>
+          </Card>
+        ))}
 
-                                {/* Price */}
-                                <Text className="text-orange-600 font-bold text-lg">
-                                    ₱{item.price.toFixed(1)}
-                                </Text>
-                            </View>
-
-                            {/* Action Buttons */}
-                            <View className="flex flex-row justify-end mt-4 gap-2">
-                                <TouchableOpacity className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
-                                    onPress={() => router.push("/edit")}>
-                                    <Edit size={16} color="white" />
-                                    <Text className="text-white ml-2">Edit</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity className="bg-red-500 px-4 py-2 rounded-lg flex flex-row items-center">
-                                    <Trash2 size={16} color="white" />
-                                </TouchableOpacity>
-                            </View>
-                        </CardContent>
-                    </Card>
-                ))}
-
-                {filteredItems.length === 0 && (
-                    <View className="flex items-center justify-center py-8">
-                        <Text className="text-gray-500 text-lg">No coffee found</Text>
-                        <Text className="text-gray-400 text-sm">
-                            Try a different search term
-                        </Text>
-                    </View>
-                )}
-            </View>
+        {filteredItems.length === 0 && (
+          <View className="flex items-center justify-center py-8">
+            <Text className="text-gray-500 text-lg">No coffee found</Text>
+            <Text className="text-gray-400 text-sm">
+              Try a different search term
+            </Text>
+          </View>
+        )}
+      </View>
       {/* Bottom spacing */}
       <View className="h-20" />
     </ScrollView>

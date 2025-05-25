@@ -66,7 +66,7 @@ export default function AddProduct() {
       >
         {/* Back Button */}
         <TouchableOpacity
-          onPress={() => router.push("/Menu/Inventory")}
+          onPress={() => router.push("/Menu/inventory")}
           className="flex-row items-center mb-6"
         >
           <ChevronLeft size={20} color="#000" />
