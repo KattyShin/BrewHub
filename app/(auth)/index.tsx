@@ -12,7 +12,7 @@ export default function LoginScreen() {
   const router = useRouter();
 
   function handleLogin() {
-    router.push('/Menu/home');
+    router.push('/Menu/Home');
   }
 
   function handleCreateAccount() {
