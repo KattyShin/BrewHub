@@ -202,7 +202,8 @@ export default function BrewHub() {
 
                             {/* Action Buttons */}
                             <View className="flex flex-row justify-end mt-4 gap-2">
-                                <TouchableOpacity className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center">
+                                <TouchableOpacity className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
+                                    onPress={() => router.push("/edit")}>
                                     <Edit size={16} color="white" />
                                     <Text className="text-white ml-2">Edit</Text>
                                 </TouchableOpacity>
