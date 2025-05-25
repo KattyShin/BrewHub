@@ -13,7 +13,7 @@
     "postinstall": "npx tailwindcss -i ./global.css -o ./node_modules/.cache/nativewind/global.css"
   },
   "dependencies": {
-    "@react-native-picker/picker": "^2.11.0",
+    "@react-native-picker/picker": "2.11.0",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/stack": "^7.3.2",
     "@rn-primitives/alert-dialog": "^1.2.0",
