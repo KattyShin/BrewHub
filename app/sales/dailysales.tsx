@@ -146,17 +146,10 @@ const DailySales = () => {
               {formatDate(item.date)}
             </Text>
           </View>
-
-          <View className="flex-row items-center mb-3">
-            <Clock size={14} color="#24A311" />
-            <Text className="text-sm text-gray-600 ml-2">
-              {formatTime(item.time)}
-            </Text>
-          </View>
-
+        
           <View className="flex-row items-center">
-            <View className="bg-orange-50 px-3 py-1 rounded-full border border-blu-200">
-              <Text className="text-xs font-semibold text-blue-500">
+            <View className="bg-green-50 px-3 py-1 rounded-full border border-green-300">
+              <Text className="text-xs font-semibold text-green-600">
                 {item.transactionCount} transactions
               </Text>
             </View>

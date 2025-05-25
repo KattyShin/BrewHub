@@ -52,7 +52,7 @@ const Settings = () => {
   const handleYearlySales = () => {
     console.log("Navigating to Yearly Sales");
     // Add navigation logic for Yearly Sales
-    // Example: router.push("/sales/yearlysales");
+    router.push("/sales/yearlysales");
   };
 
   const handleTransactions = () => {

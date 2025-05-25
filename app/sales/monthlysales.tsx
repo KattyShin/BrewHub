@@ -152,22 +152,16 @@ const MonthlySales = () => {
         <View className="flex-row justify-between items-start">
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
-              <Calendar size={16} color="#D97706" />
+              <Calendar size={16} color="#266BE9" />
               <Text className="text-lg font-bold text-gray-900 ml-2">
                 {formatMonth(item.month)}
               </Text>
             </View>
 
-            <View className="flex-row items-center mb-3">
-              <TrendingUp size={14} color="#F59E0B" />
-              <Text className="text-sm text-gray-600 ml-2">
-                Daily Avg: {formatCurrency(item.dailyAverage)}
-              </Text>
-            </View>
-
+           
             <View className="flex-row items-center">
-              <View className="bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-                <Text className="text-xs font-semibold text-orange-700">
+              <View className="bg-green-50 px-3 py-1 rounded-full border border-green-300">
+                <Text className="text-xs font-semibold text-green-600">
                   {item.transactionCount} transactions
                 </Text>
               </View>
