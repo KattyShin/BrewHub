@@ -1,18 +1,25 @@
 import * as React from 'react';
-import { View, TextInput, Pressable, Image, Alert } from 'react-native';
+import { View, TextInput, Pressable, Image, Alert, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import Logo from '~/assets/images/brewhub.png';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '~/firebaseConfig';
 
 export default function LoginScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const router = useRouter();
 
-  function handleLogin() {
-    router.push('/Menu/Home');
+  async function handleLogin() {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/Menu/Home'); // Adjust path if needed
+    } catch (error) {
+      Alert.alert('Login Error', error.message);
+    }
   }
 
   function handleCreateAccount() {
@@ -20,48 +27,125 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 justify-center items-center p-6 bg-[#D97706]">
-      <View className="absolute top-14 left-6">
-        <Image source={Logo} className="w-40 h-10" resizeMode="contain" />
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image source={Logo} style={styles.logo} resizeMode="contain" />
       </View>
 
-      <Text className="text-white text-3xl font-bold mb-20">Log-in Account</Text>
+      <Text style={styles.title}>Log-in Account</Text>
 
-      <View className="w-full max-w-sm">
-        <Text className="text-white mb-1">Email</Text>
+      <View style={styles.formContainer}>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
-          className="bg-white rounded-md p-3 mb-6"
+          style={styles.input}
           placeholder="Enter your email"
           keyboardType="email-address"
         />
 
-        <Text className="text-white mb-1">Password</Text>
+        <Text style={styles.label}>Password</Text>
         <TextInput
           value={password}
           onChangeText={setPassword}
-          className="bg-white rounded-md p-3 mb-10"
+          style={[styles.input, styles.lastInput]}
           placeholder="Enter your password"
           secureTextEntry
         />
 
-        <Button className="bg-black text-white mb-5" onPress={handleLogin}>
-          <Text className="text-white text-center">Log in</Text>
+        <Button style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Log in</Text>
         </Button>
 
-        <Button variant="outline" className="bg-white flex-row items-center justify-center">
+        <Button variant="outline" style={styles.googleButton}>
           <AntDesign name="google" size={20} color="#4285F4" />
-          <Text className="text-gray-700 ml-2">Continue with Google </Text>
+          <Text style={styles.googleText}>Continue with Google </Text>
         </Button>
       </View>
 
-      <View className="absolute bottom-20 flex-row">
-        <Text className="text-white">Don’t have an Account? </Text>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Don’t have an Account? </Text>
         <Pressable onPress={handleCreateAccount}>
-          <Text className="text-white underline font-semibold">Create Account</Text>
+          <Text style={styles.footerLink}>Create Account</Text>
         </Pressable>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#D97706',
+  },
+  logoContainer: {
+    position: 'absolute',
+    top: 56,
+    left: 24,
+  },
+  logo: {
+    width: 160,
+    height: 40,
+  },
+  title: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 80,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  label: {
+    color: 'white',
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
+  },
+  lastInput: {
+    marginBottom: 40,
+  },
+  button: {
+    backgroundColor: 'black',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  googleButton: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  googleText: {
+    color: '#4B5563',
+    marginLeft: 8,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 80,
+    flexDirection: 'row',
+  },
+  footerText: {
+    color: 'white',
+  },
+  footerLink: {
+    color: 'white',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
+  },
+});

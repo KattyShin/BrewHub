@@ -1,9 +1,20 @@
 import * as React from 'react';
-import { View, TextInput, Pressable, Image, Alert } from 'react-native';
+import {
+  View,
+  TextInput,
+  Pressable,
+  Image,
+  Alert,
+  StyleSheet,
+} from 'react-native';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
 import { useRouter } from 'expo-router';
 import Logo from '~/assets/images/brewhub.png';
+
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '~/firebaseConfig';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -13,70 +24,156 @@ export default function SignUpScreen() {
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
-    Alert.alert('Success', 'Account created!');
-    router.push('/(auth)');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Save user data in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        username,
+        email,
+        createdAt: new Date().toISOString(),
+      });
+
+      Alert.alert('Success', 'Account created!');
+      router.push('/(auth)');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Registration Error', error.message);
+    }
   };
 
   return (
-    <View className='flex-1 justify-center items-center p-6 bg-[#D97706]'>
-      <View className="absolute top-14 left-6">
-        <Image source={Logo} className="w-40 h-10" resizeMode="contain" />
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image source={Logo} style={styles.logo} resizeMode="contain" />
       </View>
-      <Text className='text-white text-3xl font-bold mb-10 text-center'>Create Account</Text>
+      <Text style={styles.title}>Create Account</Text>
 
-      <View className='w-full max-w-sm'>
-        <Text className='text-white mb-1'>Username</Text>
+      <View style={styles.formContainer}>
+        <Text style={styles.label}>Username</Text>
         <TextInput
-          className='bg-white rounded-md p-3 mb-4'
-          placeholder='Enter your username'
+          style={styles.input}
+          placeholder="Enter your username"
           value={username}
           onChangeText={setUsername}
         />
 
-        <Text className='text-white mb-1'>Email</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
-          className='bg-white rounded-md p-3 mb-4'
-          placeholder='Enter your email'
+          style={styles.input}
+          placeholder="Enter your email"
           value={email}
-          keyboardType='email-address'
+          keyboardType="email-address"
           onChangeText={setEmail}
         />
 
-        <Text className='text-white mb-1'>Password</Text>
+        <Text style={styles.label}>Password</Text>
         <TextInput
-          className='bg-white rounded-md p-3 mb-4'
-          placeholder='Enter your password'
+          style={styles.input}
+          placeholder="Enter your password"
           value={password}
           secureTextEntry
           onChangeText={setPassword}
         />
 
-        <Text className='text-white mb-1'>Re-password</Text>
+        <Text style={styles.label}>Re-password</Text>
         <TextInput
-          className='bg-white rounded-md p-3 mb-6'
-          placeholder='Confirm password'
+          style={[styles.input, styles.lastInput]}
+          placeholder="Confirm password"
           value={confirmPassword}
           secureTextEntry
           onChangeText={setConfirmPassword}
         />
 
-        <Button className='bg-black text-white mb-10' onPress={handleRegister}>
-          <Text className='text-white text-center'>Create Account</Text>
+        <Button style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Create Account</Text>
         </Button>
       </View>
 
-      <View className='absolute bottom-20 flex-row'>
-        <Text className='text-white'>Already have an Account? </Text>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Already have an Account? </Text>
         <Pressable onPress={() => router.push('/(auth)')}>
-          <Text className='text-white underline font-semibold'>Log in</Text>
+          <Text style={styles.footerLink}>Log in</Text>
         </Pressable>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#D97706',
+  },
+  logoContainer: {
+    position: 'absolute',
+    top: 56,
+    left: 24,
+  },
+  logo: {
+    width: 160,
+    height: 40,
+  },
+  title: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 40,
+    textAlign: 'center',
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  label: {
+    color: 'white',
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  lastInput: {
+    marginBottom: 24,
+  },
+  button: {
+    backgroundColor: 'black',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 40,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 80,
+    flexDirection: 'row',
+  },
+  footerText: {
+    color: 'white',
+  },
+  footerLink: {
+    color: 'white',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
+  },
+});
