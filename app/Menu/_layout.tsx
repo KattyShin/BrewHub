@@ -4,12 +4,10 @@ import { Tabs } from "expo-router";
 const _layout = () => {
   return (
     <Tabs>
-      <Tabs.Screen name="login" options={{ title: "Login" }} />
-      <Tabs.Screen name="register" options={{ title: "Register" }} />
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="order" options={{ title: "Order" }} />
-      <Tabs.Screen name="inventory" options={{ title: "Inventory" }} />
-      <Tabs.Screen name="settings" options={{ title: "Settings" }} />
+      <Tabs.Screen name="home" options={{ title: "Home", headerShown: false }} />
+      <Tabs.Screen name="order" options={{ title: "Order", headerShown: false }} />
+      <Tabs.Screen name="inventory" options={{ title: "Inventory", headerShown: false }} />
+      <Tabs.Screen name="settings" options={{ title: "Settings", headerShown: false }} />
     </Tabs>
   );
 };

@@ -20,7 +20,7 @@ export default function SignUpScreen() {
     }
 
     Alert.alert('Success', 'Account created!');
-    router.push('/login');
+    router.push('/(auth)');
   };
 
   return (
@@ -73,7 +73,7 @@ export default function SignUpScreen() {
 
       <View className='absolute bottom-20 flex-row'>
         <Text className='text-white'>Already have an Account? </Text>
-        <Pressable onPress={() => router.push('/login')}>
+        <Pressable onPress={() => router.push('/(auth)')}>
           <Text className='text-white underline font-semibold'>Log in</Text>
         </Pressable>
       </View>
