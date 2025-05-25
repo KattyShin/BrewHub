@@ -25,7 +25,7 @@ export default function Edit() {
   const handleUpdateProduct = () => {
     // Handle Updateing the product
     console.log({ name, description, category, price });
-    router.push("/Menu/Inventory"); // Navigate back to Inventory after update
+    router.push("/Menu/inventory"); // Navigate back to Inventory after update
   };
 
 
@@ -35,7 +35,7 @@ export default function Edit() {
     setDescription("");
     setCategory("");
     setPrice("");
-    router.push("/Menu/Inventory"); // Navigate back to Inventory on cancel
+    router.push("/Menu/inventory"); // Navigate back to Inventory on cancel
   };
 
   const showConfirmation = () => {
@@ -53,7 +53,7 @@ export default function Edit() {
           onPress: () => {
             handleUpdateProduct();
             Alert.alert("Success", "Product Updateed successfully!");
-            router.push("/Menu/Inventory"); // Navigate back to Inventory after update
+            router.push("/Menu/inventory"); // Navigate back to Inventory after update
           }
         }
       ]
@@ -71,7 +71,7 @@ export default function Edit() {
       >
         {/* Back Button */}
         <TouchableOpacity
-          onPress={() => router.push("/Menu/Inventory")}
+          onPress={() => router.push("/Menu/inventory")}
           className="flex-row items-center mb-6"
         >
           <ChevronLeft size={20} color="#000" />

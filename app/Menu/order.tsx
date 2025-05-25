@@ -25,7 +25,7 @@ import {
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 type CoffeeTab = "iced" | "hot";
-
+import Header from "../header";
 interface CoffeeItem {
   id: number;
   name: string;
@@ -172,7 +172,7 @@ export default function BrewHub() {
             setCart([]);
             setShowCart(false);
             setPaymentAmount("");
-          router.push("/receipt"); // Navigate to receipt page}
+            router.push("/receipt"); // Navigate to receipt page}
           },
         },
       ]
@@ -215,64 +215,64 @@ export default function BrewHub() {
                   className="bg-white rounded-lg p-4 mb-3 shadow-sm"
                 >
                   <View className="flex flex-row items-center gap-2 justify-between">
-                  {/* Left side - Product info */}
-                  <View className="flex-1">
-                    <Text className="text-lg font-bold text-gray-800 mb-1">
-                    {item.name}
-                    </Text>
-                    <Text className="text-gray-500 text-sm mb-2">
-                    {item.description}
-                    </Text>
-
-                    {/* Best Selling badge */}
-                    <View className="bg-black flex w-24 rounded-full px-3 py-1 items-center">
-                    <View className="flex flex-row items-center">
-                      <Star fill="#FFC918" size={12} />
-                      <Text className="text-white text-xs ml-1 font-medium">
-                      Best Selling
+                    {/* Left side - Product info */}
+                    <View className="flex-1">
+                      <Text className="text-lg font-bold text-gray-800 mb-1">
+                        {item.name}
                       </Text>
-                    </View>
-                    </View>
-                  </View>
+                      <Text className="text-gray-500 text-sm mb-2">
+                        {item.description}
+                      </Text>
 
-                  {/* Right side - Price and controls */}
-                  <View className="flex flex-col items-end ml-4">
-                    <Text className="text-lg font-bold text-[#D97706] mb-3">
-                    Price: ₱ {(item.price * item.quantity).toFixed(2)}
-                    </Text>
-
-                    {/* Quantity controls */}
-                    <View className="flex flex-row items-center">
-                    <TouchableOpacity
-                      onPress={() => updateQuantity(item.id, false)}
-                      className="w-8 h-8 bg-gray-200 rounded-md items-center justify-center "
-                    >
-                      <Minus color="#374151" size={14} />
-                    </TouchableOpacity>
-
-                    <Text className="mx-1 text-base font-semibold text-gray-800 min-w-[20px] text-center ">
-                      {item.quantity}
-                    </Text>
-
-                    <TouchableOpacity
-                      onPress={() => updateQuantity(item.id, true)}
-                      className="w-8 h-8 bg-gray-200 rounded-sm items-center justify-center mr-2"
-                    >
-                      <Plus size={14} />
-                    </TouchableOpacity>
+                      {/* Best Selling badge */}
+                      <View className="bg-black flex w-24 rounded-full px-3 py-1 items-center">
+                        <View className="flex flex-row items-center">
+                          <Star fill="#FFC918" size={12} />
+                          <Text className="text-white text-xs ml-1 font-medium">
+                            Best Selling
+                          </Text>
+                        </View>
+                      </View>
                     </View>
 
-                    {/* Delete button */}
-                    <TouchableOpacity
-                    onPress={() => removeFromCart(item.id)}
-                    className="mt-2"
-                    >
-                    <Trash2 color="#ED1A1A" />
-                    </TouchableOpacity>
-                  </View>
+                    {/* Right side - Price and controls */}
+                    <View className="flex flex-col items-end ml-4">
+                      <Text className="text-lg font-bold text-[#D97706] mb-3">
+                        Price: ₱ {(item.price * item.quantity).toFixed(2)}
+                      </Text>
+
+                      {/* Quantity controls */}
+                      <View className="flex flex-row items-center">
+                        <TouchableOpacity
+                          onPress={() => updateQuantity(item.id, false)}
+                          className="w-8 h-8 bg-gray-200 rounded-md items-center justify-center "
+                        >
+                          <Minus color="#374151" size={14} />
+                        </TouchableOpacity>
+
+                        <Text className="mx-1 text-base font-semibold text-gray-800 min-w-[20px] text-center ">
+                          {item.quantity}
+                        </Text>
+
+                        <TouchableOpacity
+                          onPress={() => updateQuantity(item.id, true)}
+                          className="w-8 h-8 bg-gray-200 rounded-sm items-center justify-center mr-2"
+                        >
+                          <Plus size={14} />
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Delete button */}
+                      <TouchableOpacity
+                        onPress={() => removeFromCart(item.id)}
+                        className="mt-2"
+                      >
+                        <Trash2 color="#ED1A1A" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-                ))}
+              ))}
 
               <View className="bg-white rounded-lg p-4 mt-4 mb-6 shadow-md">
                 <View className="flex flex-row justify-between items-center">
@@ -332,22 +332,8 @@ export default function BrewHub() {
           paddingVertical: 16,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-            <View className="flex flex-row items-center">
-            <View className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-2">
-              <Text className="text-[#D97706] font-bold text-sm">BH</Text>
-            </View>
-            <View className="flex flex-row">
-              <Text className="text-white font-bold text-lg">Brew</Text>
-              <Text className="text-white font-bold text-lg bg-black px-2">HUB</Text>
-            </View>
-            </View>
+        <View className="flex flex-row items-center justify-between">
+          <Header />
 
           <TouchableOpacity
             onPress={() => setShowCart(true)}
@@ -442,13 +428,9 @@ export default function BrewHub() {
           >
             <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
               {/* Coffee Icon */}
-                <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
-                {activeTab === "iced" ? (
-                  <Snowflake />
-                ) : (
-                  <Coffee />
-                )}
-                </View>
+              <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
+                {activeTab === "iced" ? <Snowflake /> : <Coffee />}
+              </View>
 
               {/* Coffee Details */}
               <View style={{ flex: 1, minWidth: 0 }}>

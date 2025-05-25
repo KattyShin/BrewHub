@@ -1,60 +1,253 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import {
+  BarChart3,
+  Calendar,
+  CalendarDays,
+  ShoppingBag,
+  CreditCard,
+  Package,
+  FileText,
+  Settings as SettingsIcon,
+  LogOut,
+  ChevronRight,
+  User,
+  Bell,
+  Shield,
+  HelpCircle,
+} from "lucide-react-native";
+import { Card, CardContent } from "components/ui/card";
+import "~/global.css";
+import { router } from "expo-router";
 
-const Receipt = () => {
-    return (
-        <View className="flex-1 bg-[#FBEFE4] justify-center items-center">
-            <View className="bg-white w-[90%] p-5 rounded-lg shadow-md">
-                <Text className="text-center font-bold text-lg mb-2">BREWHUB</Text>
-                <View className="flex-row justify-between mb-2">
-                    <Text>OR-12346</Text>
-                    <Text>1-12-2025 12:01 PM</Text>
-                </View>
-                <View className="border-b border-black my-2" />
-                <View className="mb-2">
-                    <Text className="font-bold">Cappuccino</Text>
-                    <Text className="text-gray-500 text-xs">with chocolate</Text>
-                    <View className="flex-row justify-between">
-                        <Text className="text-sm">x1</Text>
-                        <Text className="text-sm">₱ 48.00</Text>
-                    </View>
-                </View>
-                <View className="mb-2">
-                    <Text className="font-bold">Cappuccino</Text>
-                    <Text className="text-gray-500 text-xs">with chocolate</Text>
-                    <View className="flex-row justify-between">
-                        <Text className="text-sm">x1</Text>
-                        <Text className="text-sm">₱ 48.00</Text>
-                    </View>
-                </View>
-                <View className="mb-2">
-                    <Text className="font-bold">Cappuccino</Text>
-                    <Text className="text-gray-500 text-xs">with chocolate</Text>
-                    <View className="flex-row justify-between">
-                        <Text className="text-sm">x1</Text>
-                        <Text className="text-sm">₱ 48.00</Text>
-                    </View>
-                </View>
-                <View className="border-b border-black my-2" />
-                <View className="flex-row justify-between mb-1">
-                    <Text>Total Payment</Text>
-                    <Text>₱ 160.00</Text>
-                </View>
-                <View className="flex-row justify-between mb-1">
-                    <Text>Cash</Text>
-                    <Text>₱ 200.00</Text>
-                </View>
-                <View className="flex-row justify-between mb-1">
-                    <Text>Change</Text>
-                    <Text>₱ 40.00</Text>
-                </View>
-                <Text className="text-center mt-2 font-bold">THANK YOU!</Text>
+const Settings = () => {
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          // Add your logout logic here
+          console.log("User logged out");
+          // Example: navigation.navigate('Login') or clear auth tokens
+        },
+      },
+    ]);
+  };
+
+  const handleDailySales = () => {
+    router.push("/sales/dailysales");
+  };
+
+  const handleMonthlySales = () => {
+    console.log("Navigating to Monthly Sales");
+    // Add navigation logic for Monthly Sales
+    // Example: router.push("/sales/monthlysales");
+  };
+
+  const handleYearlySales = () => {
+    console.log("Navigating to Yearly Sales");
+    // Add navigation logic for Yearly Sales
+    // Example: router.push("/sales/yearlysales");
+  };
+
+  const handleTransactions = () => {
+    console.log("Navigating to Transactions");
+    // Add navigation logic for Transactions
+    // Example: router.push("/transactions");
+  };
+
+  // Daily Sales Component
+  const DailySalesOption = () => (
+    <Card className="bg-white shadow-sm rounded-xl border-0 mb-3">
+      <CardContent className="p-0">
+        <TouchableOpacity
+          className="p-4"
+          style={{ borderRadius: 12 }}
+          activeOpacity={0.7}
+          onPress={handleDailySales}
+        >
+          <View className="flex flex-row items-center">
+            <View
+              className="w-11 h-11 rounded-xl flex items-center justify-center mr-4"
+              style={{ backgroundColor: "#10B98115" }}
+            >
+              <BarChart3 size={22} color="#10B981" />
             </View>
-            <TouchableOpacity className="bg-[#D97D0D] p-4 rounded mt-5 w-[90%] items-center">
-                <Text className="text-white font-bold">Done</Text>
-            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text className="text-gray-900 font-semibold text-base mb-1">
+                Daily Sales
+              </Text>
+              <Text className="text-gray-500 text-sm">
+                View today's performance
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </View>
+        </TouchableOpacity>
+      </CardContent>
+    </Card>
+  );
+
+  // Monthly Sales Component
+  const MonthlySalesOption = () => (
+    <Card className="bg-white shadow-sm rounded-xl border-0 mb-3">
+      <CardContent className="p-0">
+        <TouchableOpacity
+          className="p-4"
+          style={{ borderRadius: 12 }}
+          activeOpacity={0.7}
+          onPress={handleMonthlySales}
+        >
+          <View className="flex flex-row items-center">
+            <View
+              className="w-11 h-11 rounded-xl flex items-center justify-center mr-4"
+              style={{ backgroundColor: "#3B82F615" }}
+            >
+              <Calendar size={22} color="#3B82F6" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text className="text-gray-900 font-semibold text-base mb-1">
+                Monthly Sales
+              </Text>
+              <Text className="text-gray-500 text-sm">
+                Monthly analytics & trends
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </View>
+        </TouchableOpacity>
+      </CardContent>
+    </Card>
+  );
+
+  // Yearly Sales Component
+  const YearlySalesOption = () => (
+    <Card className="bg-white shadow-sm rounded-xl border-0 mb-3">
+      <CardContent className="p-0">
+        <TouchableOpacity
+          className="p-4"
+          style={{ borderRadius: 12 }}
+          activeOpacity={0.7}
+          onPress={handleYearlySales}
+        >
+          <View className="flex flex-row items-center">
+            <View
+              className="w-11 h-11 rounded-xl flex items-center justify-center mr-4"
+              style={{ backgroundColor: "#8B5CF615" }}
+            >
+              <CalendarDays size={22} color="#8B5CF6" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text className="text-gray-900 font-semibold text-base mb-1">
+                Yearly Sales
+              </Text>
+              <Text className="text-gray-500 text-sm">
+                Annual business overview
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </View>
+        </TouchableOpacity>
+      </CardContent>
+    </Card>
+  );
+
+  // Transactions Component
+  const TransactionsOption = () => (
+    <Card className="bg-white shadow-sm rounded-xl border-0 mb-3">
+      <CardContent className="p-0">
+        <TouchableOpacity
+          className="p-4"
+          style={{ borderRadius: 12 }}
+          activeOpacity={0.7}
+          onPress={handleTransactions}
+        >
+          <View className="flex flex-row items-center">
+            <View
+              className="w-11 h-11 rounded-xl flex items-center justify-center mr-4"
+              style={{ backgroundColor: "#F59E0B15" }}
+            >
+              <CreditCard size={22} color="#F59E0B" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text className="text-gray-900 font-semibold text-base mb-1">
+                Transactions
+              </Text>
+              <Text className="text-gray-500 text-sm">
+                Payment history & details
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </View>
+        </TouchableOpacity>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <View className="flex-1 bg-[#FFF7ED]">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {/* Enhanced User Profile Section */}
+        <View className="bg-[#D97706] px-4 py-4 mb-6">
+          <View className="flex flex-row items-center">
+            <View className="w-16 h-16 rounded-2xl flex items-center justify-center mr-4 bg-black">
+              <Text className="text-white font-bold text-xl">KT</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-white font-bold text-xl mb-1">
+                Katty Torres
+              </Text>
+              <Text className="text-gray-200 text-base mb-2">
+                caballes@gmail.com
+              </Text>
+            </View>
+          </View>
         </View>
-    );
+
+        <View className="px-6">
+          {/* Reports & Analytics Section */}
+          <View className="mb-8">
+            <Text className="text-gray-900 text-xl font-bold mb-1">
+              Reports & Analytics
+            </Text>
+            <Text className="text-gray-500 text-sm mb-5">
+              Track your business performance
+            </Text>
+
+            <DailySalesOption />
+            <MonthlySalesOption />
+            <YearlySalesOption />
+            <TransactionsOption />
+          </View>
+        </View>
+
+        {/* Bottom spacing */}
+        <View className="h-6" />
+      </ScrollView>
+
+      {/* Fixed Sign Out Button at Bottom */}
+      <View className="px-6 py-4 absolute bottom-0 left-0 right-0">
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="bg-black px-6 py-4 rounded-xl flex flex-row items-center justify-center"
+        >
+          <LogOut size={20} color="white" />
+          <Text className="text-white font-semibold ml-3 text-base">
+            Sign Out
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 };
 
-export default Receipt;
+export default Settings;
