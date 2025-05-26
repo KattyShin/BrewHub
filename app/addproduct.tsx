@@ -15,13 +15,15 @@ import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productSchema, ProductFormData } from "./schema/product"; 
+import { productSchema, ProductFormData } from "./schema/product";
+import { useAuthStore } from "./stores/authstore";
 
 // Firestore imports
-import { collection, addDoc } from "firebase/firestore";
-import { db } from '~/firebaseConfig';
+import { collection, addDoc ,doc } from "firebase/firestore";
+import { db, } from "~/firebaseConfig";
 
 export default function AddProduct() {
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
 
   const {
@@ -56,6 +58,8 @@ export default function AddProduct() {
               category: data.category,
               price: parseFloat(data.price),
               createdAt: new Date().toISOString(),
+              user: user?.uid ? doc(db, "users", user.uid) : null, // ensure user ID is defined
+
             });
             Alert.alert("Success", "Product added successfully!");
             reset();
@@ -77,6 +81,11 @@ export default function AddProduct() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       className="flex-1 bg-[#fef7ed]"
     >
+      <View>
+        <Text>Welcome, {user?.email}!</Text>
+        <Text>User ID: {user?.uid}</Text>
+      </View>
+
       <ScrollView
         contentContainerStyle={{ padding: 16 }}
         keyboardShouldPersistTaps="handled"

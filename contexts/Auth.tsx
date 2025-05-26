@@ -1,11 +1,13 @@
 import React, { createContext, useEffect, useState, useContext } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 
-const AuthContext = createContext({ user: null, loading: true });
+const AuthContext = createContext<{ user: User | null; loading: boolean }>({ user: null, loading: true });
 
-export const AuthContextProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+import { ReactNode } from 'react';
+
+export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,3 +26,4 @@ export const AuthContextProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

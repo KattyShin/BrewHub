@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert,StatusBar } from "react-native";
 import {
   BarChart3,
   Calendar,
@@ -192,6 +192,10 @@ const Settings = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF7ED]">
+       <StatusBar
+      barStyle="light-content" // or "dark-content" depending on your background
+      backgroundColor="#D97706" // match your header color
+    />
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}

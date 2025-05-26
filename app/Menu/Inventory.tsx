@@ -1,12 +1,6 @@
 import "~/global.css";
 import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Coffee,
-  Snowflake,
-  Edit,
-  Trash2,
-} from "lucide-react-native";
+import { Search, Coffee, Snowflake, Edit, Trash2 } from "lucide-react-native";
 import { Card, CardContent, CardTitle } from "components/ui/card";
 import {
   View,
@@ -16,12 +10,14 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  StatusBar,
+  SafeAreaView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import Header from "../header";
-
+import { useAuthStore } from "../stores/authstore";
 // Firestore imports
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, onSnapshot, query, where, doc } from "firebase/firestore";
 import { db } from "~/firebaseConfig";
 
 type CoffeeTab = "iced" | "hot";
@@ -33,20 +29,26 @@ type Product = {
   price: number;
   rating?: number;
   category: "iced" | "hot" | string; // assuming category corresponds to coffee tabs
+  users?: string; // Ensure users is an array
 };
 
 export default function BrewHub() {
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
-
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [activeTab, setActiveTab] = useState<CoffeeTab>("hot");
   const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    // Firestore query to listen to products collection realtime
-    const q = query(collection(db, "products"));
+    if (!user?.uid) return;
+    // Create reference to the user document
+    const userRef = doc(db, "users", user.uid);
+
+    const q = query(
+      collection(db, "products"),
+      where("user", "==", userRef) // Must match reference
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -71,10 +73,8 @@ export default function BrewHub() {
       }
     );
 
-    // Cleanup on unmount
     return () => unsubscribe();
-  }, []);
-
+  }, [user?.uid]);
   // Filter products based on activeTab and search text
   const filteredItems = products.filter(
     (item) =>
@@ -84,26 +84,32 @@ export default function BrewHub() {
   );
 
   const handleDelete = (id: string) => {
-    Alert.alert("Confirm Delete", "Are you sure you want to delete this product?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            // Firestore delete
-            await import("firebase/firestore").then(async ({ doc, deleteDoc }) => {
-              const docRef = doc(db, "products", id);
-              await deleteDoc(docRef);
-            });
-            Alert.alert("Deleted", "Product has been deleted.");
-          } catch (error) {
-            console.error("Delete failed:", error);
-            Alert.alert("Error", "Failed to delete product.");
-          }
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this product?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Firestore delete
+              await import("firebase/firestore").then(
+                async ({ doc, deleteDoc }) => {
+                  const docRef = doc(db, "products", id);
+                  await deleteDoc(docRef);
+                }
+              );
+              Alert.alert("Deleted", "Product has been deleted.");
+            } catch (error) {
+              console.error("Delete failed:", error);
+              Alert.alert("Error", "Failed to delete product.");
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   if (loading) {
@@ -115,8 +121,15 @@ export default function BrewHub() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#fef7ed" }}>
-      {/* Header */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fef7ed" }}>
+      <View>
+        <Text>Welcome, {user?.email}!</Text>
+        <Text>User ID: {user?.uid}</Text>
+      </View>
+      <StatusBar
+        barStyle="light-content" // or "dark-content" depending on your background
+        backgroundColor="#D97706" // match your header color
+      />
       <View
         style={{
           backgroundColor: "#D97706",
@@ -153,7 +166,9 @@ export default function BrewHub() {
           className="bg-black w-40 px-4 py-3 rounded-lg"
           onPress={() => router.push("/addproduct")}
         >
-          <Text className="text-white font-medium text-center">Add Product</Text>
+          <Text className="text-white font-medium text-center">
+            Add Product
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -202,67 +217,75 @@ export default function BrewHub() {
         </View>
       </View>
 
-      {/* Products List */}
-      <View className="px-4">
-        {filteredItems.length === 0 ? (
-          <View className="flex items-center justify-center py-8">
-            <Text className="text-gray-500 text-lg">No coffee found</Text>
-            <Text className="text-gray-400 text-sm">Try a different search term</Text>
-          </View>
-        ) : (
-          filteredItems.map((item) => (
-            <Card
-              key={item.id}
-              className="bg-white shadow-md rounded-lg border-transparent mb-4"
-            >
-              <CardContent className="p-4">
-                <View className="flex flex-row items-center gap-4">
-                  {/* Coffee Icon */}
-                  <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
-                    {item.category === "iced" ? <Snowflake /> : <Coffee />}
-                  </View>
+      <ScrollView
+        style={{ flex: 1, paddingHorizontal: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Products List */}
 
-                  {/* Coffee Details */}
-                  <View style={{ flex: 1 }}>
-                    <CardTitle className="text-black text-lg mb-1">
-                      {item.name}
-                    </CardTitle>
-                    <Text className="text-gray-500 text-sm mb-2">
-                      {item.description}
+        <View className="px-4">
+          {filteredItems.length === 0 ? (
+            <View className="flex items-center justify-center py-8">
+              <Text className="text-gray-500 text-lg">No coffee found</Text>
+              <Text className="text-gray-400 text-sm">
+                Try a different search term
+              </Text>
+            </View>
+          ) : (
+            filteredItems.map((item) => (
+              <Card
+                key={item.id}
+                className="bg-white shadow-md rounded-lg border-transparent mb-4"
+              >
+                <CardContent className="p-4">
+                  <View className="flex flex-row items-center gap-4">
+                    {/* Coffee Icon */}
+                    <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
+                      {item.category === "iced" ? <Snowflake /> : <Coffee />}
+                    </View>
+
+                    {/* Coffee Details */}
+                    <View style={{ flex: 1 }}>
+                      <CardTitle className="text-black text-lg mb-1">
+                        {item.name}
+                      </CardTitle>
+                      <Text className="text-gray-500 text-sm mb-2">
+                        {item.description}
+                      </Text>
+                    </View>
+
+                    {/* Price */}
+                    <Text className="text-orange-600 font-bold text-lg">
+                      ₱{item.price.toFixed(1)}
                     </Text>
                   </View>
 
-                  {/* Price */}
-                  <Text className="text-orange-600 font-bold text-lg">
-                    ₱{item.price.toFixed(1)}
-                  </Text>
-                </View>
+                  {/* Action Buttons */}
+                  <View className="flex flex-row justify-end mt-4 gap-2">
+                    <TouchableOpacity
+                      className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
+                      onPress={() => router.push(`/edit?id=${item.id}`)}
+                    >
+                      <Edit size={16} color="white" />
+                      <Text className="text-white ml-2">Edit</Text>
+                    </TouchableOpacity>
 
-                {/* Action Buttons */}
-                <View className="flex flex-row justify-end mt-4 gap-2">
-                  <TouchableOpacity
-                    className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
-                    onPress={() => router.push(`/edit?id=${item.id}`)}
-                  >
-                    <Edit size={16} color="white" />
-                    <Text className="text-white ml-2">Edit</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    className="bg-red-500 px-4 py-2 rounded-lg flex flex-row items-center"
-                    onPress={() => handleDelete(item.id)}
-                  >
-                    <Trash2 size={16} color="white" />
-                  </TouchableOpacity>
-                </View>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </View>
-
+                    <TouchableOpacity
+                      className="bg-red-500 px-4 py-2 rounded-lg flex flex-row items-center"
+                      onPress={() => handleDelete(item.id)}
+                    >
+                      <Trash2 size={16} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </View>
       {/* Bottom spacing */}
       <View className="h-20" />
-    </ScrollView>
+      </ScrollView>
+
+    </SafeAreaView>
   );
 }

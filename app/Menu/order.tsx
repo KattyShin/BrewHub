@@ -9,12 +9,19 @@ import {
   StatusBar,
   Pressable,
 } from "react-native";
-import { Search, ShoppingCart, Star, Coffee, Snowflake } from "lucide-react-native";
+import {
+  Search,
+  ShoppingCart,
+  Star,
+  Coffee,
+  Snowflake,
+} from "lucide-react-native";
 import { useRouter } from "expo-router";
 import Header from "../header";
 import CartView from "../cartview";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from '~/firebaseConfig';
+import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
+import { db } from "~/firebaseConfig";
+import { useAuthStore } from "../stores/authstore";
 
 type CoffeeTab = "iced" | "hot";
 
@@ -31,24 +38,31 @@ interface CartItem extends Product {
   quantity: number;
 }
 
-// Add uid as a prop to your BrewHub component
-interface BrewHubProps {
-  uid?: string; // Make it optional in case it's not always passed
-}
+export default function BrewHub() {
+  const user = useAuthStore((state) => state.user);
 
-export default function BrewHub({ uid }: BrewHubProps) {
   const [activeTab, setActiveTab] = useState<CoffeeTab>("iced");
   const [searchText, setSearchText] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false); // Add separate loading for tab switches
   const router = useRouter();
 
-  // Fetch products from Firestore
   useEffect(() => {
-    const q = query(collection(db, "products"), where("category", "==", activeTab));
-    
+    if (!user?.uid) return;
+
+    // Create a document reference to the user
+    const userRef = doc(db, "users", user.uid);
+
+    // Create query filtering by category and user reference
+    const q = query(
+      collection(db, "products"),
+      where("category", "==", activeTab),
+      where("user", "==", userRef)
+    );
+
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
@@ -61,7 +75,7 @@ export default function BrewHub({ uid }: BrewHubProps) {
             description: data.description,
             price: data.price,
             category: data.category,
-            rating: data.rating || 4.5, // Default rating if not provided
+            rating: data.rating || 4.5,
           });
         });
         setProducts(items);
@@ -70,11 +84,12 @@ export default function BrewHub({ uid }: BrewHubProps) {
       (error) => {
         console.error("Firestore fetching error: ", error);
         setLoading(false);
+        setTabLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [activeTab]);
+  }, [user?.uid]);
 
   const filteredItems = products.filter(
     (item) =>
@@ -108,25 +123,27 @@ export default function BrewHub({ uid }: BrewHubProps) {
         setCart={setCart}
         setShowCart={setShowCart}
         router={router}
-        uid={uid} // Pass the uid to CartView
       />
     );
   }
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF7ED" }}>
-        <StatusBar barStyle="light-content" backgroundColor="#D97706" />
-        <View className="flex-1 items-center justify-center">
-          <Text>Loading products...</Text>
-        </View>
-      </SafeAreaView>
+      <View className="flex-1 justify-center items-center bg-[#fef7ed]">
+        <Text>Loading products...</Text>
+      </View>
     );
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF7ED" }}>
       <StatusBar barStyle="light-content" backgroundColor="#D97706" />
+
+      {/* Main content */}
+      <View>
+        <Text>Welcome, {user?.email}!</Text>
+        <Text>User ID: {user?.uid}</Text>
+      </View>
 
       {/* Header */}
       <View
@@ -177,7 +194,7 @@ export default function BrewHub({ uid }: BrewHubProps) {
 
       {/* Tab Navigation */}
       <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-        <View className="flex flex-row bg-gray-200  p-1 mt-2 ">
+        <View className="flex flex-row bg-gray-200 p-1 mt-2 ">
           <Pressable
             onPress={() => setActiveTab("iced")}
             className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
@@ -225,60 +242,79 @@ export default function BrewHub({ uid }: BrewHubProps) {
         style={{ flex: 1, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {filteredItems.map((item) => (
-          <View
-            key={item.id}
-            className="bg-white rounded-lg p-4 mb-4 shadow-md"
-          >
-            <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-              {/* Coffee Icon */}
-              <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
-                {activeTab === "iced" ? <Snowflake /> : <Coffee />}
-              </View>
-
-              {/* Coffee Details */}
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="text-lg font-bold text-gray-800 mb-1">
-                  {item.name}
-                </Text>
-                <Text className="text-gray-600 text-sm mb-2">
-                  {item.description}
-                </Text>
-                <View className="flex flex-row items-center mt-1 bg-black rounded-full px-2 py-1 w-24">
-                  <Star size={16} fill="#FFC918" />
-                  <Text className="text-white text-xs">Best Selling </Text>
-                </View>
-              </View>
-
-              {/* Price */}
-              <View className="flex items-end ml-4">
-                <Text className="text-[#D97706] font-bold text-lg mx-2">
-                  ${item.price.toFixed(1)}
-                </Text>
-              </View>
-            </View>
-
-            {/* Add to Cart Button */}
-            <TouchableOpacity
-              onPress={() => addToCart(item)}
-              className="bg-[#D97706] rounded-lg py-2 mt-4 flex items-center"
-            >
-              <Text className="text-white text-base font-semibold">
-                Add to Cart
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-
-        {filteredItems.length === 0 && (
+        {/* Show loading indicator when switching tabs */}
+        {tabLoading ? (
           <View className="flex-1 items-center justify-center p-4">
-            <Coffee size={48} color="#9CA3AF" />
-            <Text className="text-gray-600 text-lg mt-4">No coffee found</Text>
-            <Text className="">Try a different search term</Text>
+            <Text className="text-gray-600 text-lg">
+              Loading {activeTab} coffee...
+            </Text>
           </View>
+        ) : (
+          <>
+            {filteredItems.map((item) => (
+              <View
+                key={item.id}
+                className="bg-white rounded-lg p-4 mb-4 shadow-md"
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "flex-start" }}
+                >
+                  {/* Coffee Icon - Now properly matches the item category */}
+                  <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
+                    {item.category === "iced" ? <Snowflake /> : <Coffee />}
+                  </View>
+
+                  {/* Coffee Details */}
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text className="text-lg font-bold text-gray-800 mb-1">
+                      {item.name}
+                    </Text>
+                    <Text className="text-gray-600 text-sm mb-2">
+                      {item.description}
+                    </Text>
+                    <View className="flex flex-row items-center mt-1 bg-black rounded-full px-2 py-1 w-24">
+                      <Star size={16} fill="#FFC918" />
+                      <Text className="text-white text-xs">Best Selling </Text>
+                    </View>
+                  </View>
+
+                  {/* Price */}
+                  <View className="flex items-end ml-4">
+                    <Text className="text-[#D97706] font-bold text-lg mx-2">
+                      ${item.price.toFixed(1)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Add to Cart Button */}
+                <TouchableOpacity
+                  onPress={() => addToCart(item)}
+                  className="bg-[#D97706] rounded-lg py-2 mt-4 flex items-center"
+                >
+                  <Text className="text-white text-base font-semibold">
+                    Add to Cart
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            {filteredItems.length === 0 && !tabLoading && (
+              <View className="flex-1 items-center justify-center p-4">
+                {activeTab === "iced" ? (
+                  <Snowflake size={48} color="#9CA3AF" />
+                ) : (
+                  <Coffee size={48} color="#9CA3AF" />
+                )}
+                <Text className="text-gray-600 text-lg mt-4">
+                  No coffee found
+                </Text>
+                <Text className="">Try a different search term</Text>
+              </View>
+            )}
+          </>
         )}
 
-        <View style={{ height: 32 }} />
+        <View />
       </ScrollView>
     </SafeAreaView>
   );
