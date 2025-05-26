@@ -46,13 +46,13 @@ const Settings = () => {
   const handleMonthlySales = () => {
     console.log("Navigating to Monthly Sales");
     // Add navigation logic for Monthly Sales
-    // Example: router.push("/sales/monthlysales");
+    router.push("/sales/monthlysales");
   };
 
   const handleYearlySales = () => {
     console.log("Navigating to Yearly Sales");
     // Add navigation logic for Yearly Sales
-    // Example: router.push("/sales/yearlysales");
+    router.push("/sales/yearlysales");
   };
 
   const handleTransactions = () => {

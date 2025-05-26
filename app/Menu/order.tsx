@@ -179,6 +179,7 @@ export default function BrewHub() {
     );
   };
 
+  
   if (showCart) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF7ED" }}>
