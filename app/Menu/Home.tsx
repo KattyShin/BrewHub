@@ -2,6 +2,7 @@ import { View, Text } from "react-native";
 import React from "react";
 import Header from "../header";
 import { useAuth } from "contexts/Auth"; // adjust the path
+import { useLocalSearchParams } from "expo-router";
 
 const Home = () => {
   const { username } = useLocalSearchParams(); //  Get the username from the login screen
