@@ -19,6 +19,7 @@ import {
 import { Card, CardContent } from "components/ui/card";
 import "~/global.css";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Settings = () => {
   const handleLogout = () => {
@@ -190,7 +191,7 @@ const Settings = () => {
   );
 
   return (
-    <View className="flex-1 bg-[#FFF7ED]">
+    <SafeAreaView className="flex-1 bg-[#FFF7ED]">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -246,7 +247,7 @@ const Settings = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

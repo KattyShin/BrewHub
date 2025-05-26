@@ -32,13 +32,7 @@ export default function LoginScreen() {
 
       //  Log in with email + password
       await signInWithEmailAndPassword(auth, email, password);
-
-      //  Navigate to Home and pass the username
-      router.push({
-        pathname: '/Menu/Home',
-        params: { username },
-      });
-
+      router.push('/Menu/home'); // Adjust path if needed
     } catch (error) {
       Alert.alert('Login Error', (error as Error).message);
     }
