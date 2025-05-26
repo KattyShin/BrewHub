@@ -16,9 +16,7 @@ const Home = () => {
       >
         <View className="flex flex-row items-center justify-between">
           <Header />
-        </View> <View >
-      {/* You can also use user.uid, user.displayName, etc. */}
-    </View>
+        </View>
       </View>
     </View>
   );

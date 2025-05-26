@@ -15,12 +15,21 @@ import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productSchema, ProductFormData } from "../app/schema/addproduct"; 
+import { productSchema, ProductFormData } from "./schema/product"; 
+
+// Firestore imports
+import { collection, addDoc } from "firebase/firestore";
+import { db } from '~/firebaseConfig';
 
 export default function AddProduct() {
   const router = useRouter();
 
-  const {control,handleSubmit,reset, formState: { errors, isValid },} = useForm<ProductFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
@@ -28,10 +37,10 @@ export default function AddProduct() {
       category: "",
       price: "",
     },
-    mode: "onChange", 
+    mode: "onBlur", // Validate inputs when they lose focus
   });
 
-  const onSubmit = (data: ProductFormData) => {
+  const onSubmit = async (data: ProductFormData) => {
     Alert.alert("Confirm", "Are you sure you want to add this product?", [
       {
         text: "Cancel",
@@ -39,10 +48,21 @@ export default function AddProduct() {
       },
       {
         text: "OK",
-        onPress: () => {
-          console.log("Product Data:", data);
-          Alert.alert("Success", "Product added successfully!");
-          reset(); // Clear form after success
+        onPress: async () => {
+          try {
+            await addDoc(collection(db, "products"), {
+              name: data.name,
+              description: data.description,
+              category: data.category,
+              price: parseFloat(data.price),
+              createdAt: new Date().toISOString(),
+            });
+            Alert.alert("Success", "Product added successfully!");
+            reset();
+          } catch (error) {
+            console.error("Error adding document: ", error);
+            Alert.alert("Error", "Failed to add product.");
+          }
         },
       },
     ]);
@@ -52,7 +72,6 @@ export default function AddProduct() {
     reset();
   };
 
-  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -83,11 +102,7 @@ export default function AddProduct() {
             <Controller
               control={control}
               name="name"
-              render={({
-                field: { onChange, value },
-              }: {
-                field: { onChange: (value: string) => void; value: string };
-              }) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   value={value}
                   onChangeText={onChange}
@@ -110,11 +125,7 @@ export default function AddProduct() {
             <Controller
               control={control}
               name="description"
-              render={({
-                field: { onChange, value },
-              }: {
-                field: { onChange: (value: string) => void; value: string };
-              }) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   value={value}
                   onChangeText={onChange}
@@ -139,11 +150,7 @@ export default function AddProduct() {
             <Controller
               control={control}
               name="category"
-              render={({
-                field: { onChange, value },
-              }: {
-                field: { onChange: (value: string) => void; value: string };
-              }) => (
+              render={({ field: { onChange, value } }) => (
                 <View
                   className={`bg-gray-200 rounded-lg mb-2 overflow-hidden ${
                     errors.category ? "border border-red-500" : ""
@@ -172,11 +179,7 @@ export default function AddProduct() {
             <Controller
               control={control}
               name="price"
-              render={({
-                field: { onChange, value },
-              }: {
-                field: { onChange: (value: string) => void; value: string };
-              }) => (
+              render={({ field: { onChange, value } }) => (
                 <TextInput
                   value={value}
                   onChangeText={onChange}
@@ -201,7 +204,7 @@ export default function AddProduct() {
             <TouchableOpacity
               onPress={handleSubmit(onSubmit)}
               className="flex-1 py-4 rounded-lg mr-2 items-center bg-[#D97706]"
-              disabled={!isValid}
+              // Disabled removed so user can always submit and see errors
             >
               <Text className="text-white text-base font-semibold">Add</Text>
             </TouchableOpacity>
