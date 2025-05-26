@@ -40,6 +40,7 @@ interface CartItem extends Product {
 
 export default function BrewHub() {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<CoffeeTab>("iced");
   const [searchText, setSearchText] = useState("");
@@ -47,19 +48,13 @@ export default function BrewHub() {
   const [showCart, setShowCart] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tabLoading, setTabLoading] = useState(false); // Add separate loading for tab switches
-  const router = useRouter();
 
   useEffect(() => {
     if (!user?.uid) return;
 
-    // Create a document reference to the user
     const userRef = doc(db, "users", user.uid);
-
-    // Create query filtering by category and user reference
     const q = query(
       collection(db, "products"),
-      where("category", "==", activeTab),
       where("user", "==", userRef)
     );
 
@@ -84,7 +79,6 @@ export default function BrewHub() {
       (error) => {
         console.error("Firestore fetching error: ", error);
         setLoading(false);
-        setTabLoading(false);
       }
     );
 
@@ -93,8 +87,9 @@ export default function BrewHub() {
 
   const filteredItems = products.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchText.toLowerCase())
+      item.category === activeTab &&
+      (item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   const addToCart = (item: Product) => {
@@ -139,13 +134,11 @@ export default function BrewHub() {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF7ED" }}>
       <StatusBar barStyle="light-content" backgroundColor="#D97706" />
 
-      {/* Main content */}
       <View>
         <Text>Welcome, {user?.email}!</Text>
         <Text>User ID: {user?.uid}</Text>
       </View>
 
-      {/* Header */}
       <View
         style={{
           backgroundColor: "#D97706",
@@ -176,7 +169,6 @@ export default function BrewHub() {
         </Text>
       </View>
 
-      {/* Search Bar */}
       <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
         <View style={{ position: "relative" }}>
           <TextInput
@@ -192,9 +184,8 @@ export default function BrewHub() {
         </View>
       </View>
 
-      {/* Tab Navigation */}
       <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-        <View className="flex flex-row bg-gray-200 p-1 mt-2 ">
+        <View className="flex flex-row bg-gray-200 p-1 mt-2">
           <Pressable
             onPress={() => setActiveTab("iced")}
             className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
@@ -237,81 +228,63 @@ export default function BrewHub() {
         </View>
       </View>
 
-      {/* Coffee Items */}
       <ScrollView
         style={{ flex: 1, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Show loading indicator when switching tabs */}
-        {tabLoading ? (
-          <View className="flex-1 items-center justify-center p-4">
-            <Text className="text-gray-600 text-lg">
-              Loading {activeTab} coffee...
-            </Text>
-          </View>
-        ) : (
-          <>
-            {filteredItems.map((item) => (
-              <View
-                key={item.id}
-                className="bg-white rounded-lg p-4 mb-4 shadow-md"
-              >
-                <View
-                  style={{ flexDirection: "row", alignItems: "flex-start" }}
-                >
-                  {/* Coffee Icon - Now properly matches the item category */}
-                  <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
-                    {item.category === "iced" ? <Snowflake /> : <Coffee />}
-                  </View>
-
-                  {/* Coffee Details */}
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text className="text-lg font-bold text-gray-800 mb-1">
-                      {item.name}
-                    </Text>
-                    <Text className="text-gray-600 text-sm mb-2">
-                      {item.description}
-                    </Text>
-                    <View className="flex flex-row items-center mt-1 bg-black rounded-full px-2 py-1 w-24">
-                      <Star size={16} fill="#FFC918" />
-                      <Text className="text-white text-xs">Best Selling </Text>
-                    </View>
-                  </View>
-
-                  {/* Price */}
-                  <View className="flex items-end ml-4">
-                    <Text className="text-[#D97706] font-bold text-lg mx-2">
-                      ${item.price.toFixed(1)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Add to Cart Button */}
-                <TouchableOpacity
-                  onPress={() => addToCart(item)}
-                  className="bg-[#D97706] rounded-lg py-2 mt-4 flex items-center"
-                >
-                  <Text className="text-white text-base font-semibold">
-                    Add to Cart
-                  </Text>
-                </TouchableOpacity>
+        {filteredItems.map((item) => (
+          <View
+            key={item.id}
+            className="bg-white rounded-lg p-4 mb-4 shadow-md"
+          >
+            <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+              <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
+                {item.category === "iced" ? <Snowflake /> : <Coffee />}
               </View>
-            ))}
 
-            {filteredItems.length === 0 && !tabLoading && (
-              <View className="flex-1 items-center justify-center p-4">
-                {activeTab === "iced" ? (
-                  <Snowflake size={48} color="#9CA3AF" />
-                ) : (
-                  <Coffee size={48} color="#9CA3AF" />
-                )}
-                <Text className="text-gray-600 text-lg mt-4">
-                  No coffee found
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text className="text-lg font-bold text-gray-800 mb-1">
+                  {item.name}
                 </Text>
-                <Text className="">Try a different search term</Text>
+                <Text className="text-gray-600 text-sm mb-2">
+                  {item.description}
+                </Text>
+                <View className="flex flex-row items-center mt-1 bg-black rounded-full px-2 py-1 w-24">
+                  <Star size={16} fill="#FFC918" />
+                  <Text className="text-white text-xs">Best Selling</Text>
+                </View>
               </View>
+
+              <View className="flex items-end ml-4">
+                <Text className="text-[#D97706] font-bold text-lg mx-2">
+                  ${item.price.toFixed(1)}
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => addToCart(item)}
+              className="bg-[#D97706] rounded-lg py-2 mt-4 flex items-center"
+            >
+              <Text className="text-white text-base font-semibold">
+                Add to Cart
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        {filteredItems.length === 0 && (
+          <View className="flex-1 items-center justify-center p-4">
+            {activeTab === "iced" ? (
+              <Snowflake size={48} color="#9CA3AF" />
+            ) : (
+              <Coffee size={48} color="#9CA3AF" />
             )}
-          </>
+            <Text className="text-gray-600 text-lg mt-4">
+              No coffee found
+            </Text>
+            <Text className="">Try a different search term</Text>
+          </View>
         )}
 
         <View />

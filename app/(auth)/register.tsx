@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 5,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
