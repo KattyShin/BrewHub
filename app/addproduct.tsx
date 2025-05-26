@@ -15,33 +15,12 @@ import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-// Form Schema
-const productSchema = z.object({
-  name: z.string().min(1, "Product name is required").max(100, "Name too long"),
-  description: z
-    .string()
-    .min(1, "Description is required")
-    .max(500, "Description too long"),
-  category: z.string().min(1, "Please select a category"),
-  price: z
-    .string()
-    .min(1, "Price is required")
-    .regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
-});
-
-type ProductFormData = z.infer<typeof productSchema>;
+import { productSchema, ProductFormData } from "../app/schema/addproduct"; 
 
 export default function AddProduct() {
   const router = useRouter();
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isValid },
-  } = useForm<ProductFormData>({
+  const {control,handleSubmit,reset, formState: { errors, isValid },} = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
@@ -49,7 +28,7 @@ export default function AddProduct() {
       category: "",
       price: "",
     },
-    mode: "onChange", // Validate on change
+    mode: "onChange", 
   });
 
   const onSubmit = (data: ProductFormData) => {
@@ -73,6 +52,7 @@ export default function AddProduct() {
     reset();
   };
 
+  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -172,10 +152,9 @@ export default function AddProduct() {
                   <Picker
                     selectedValue={value}
                     onValueChange={onChange}
-
                     className="bg-gray-200 py-2 px-4 text-base text-gray-600 "
                   >
-                    <Picker.Item  label="Select a category" value="" />
+                    <Picker.Item label="Select a category" value="" />
                     <Picker.Item label="Hot Coffee" value="hot" />
                     <Picker.Item label="Iced Coffee" value="iced" />
                   </Picker>

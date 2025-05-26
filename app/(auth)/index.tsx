@@ -16,9 +16,9 @@ export default function LoginScreen() {
   async function handleLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/Menu/Home'); // Adjust path if needed
+      router.push('/Menu/home'); // Adjust path if needed
     } catch (error) {
-      Alert.alert('Login Error', error.message);
+      Alert.alert('Login Error', (error as Error).message);
     }
   }
 

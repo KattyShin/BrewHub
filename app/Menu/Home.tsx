@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
 import Header from "../header";
+import { useAuth } from "contexts/Auth"; // adjust the path
 
 const Home = () => {
   return (
@@ -15,11 +16,9 @@ const Home = () => {
       >
         <View className="flex flex-row items-center justify-between">
           <Header />
-        </View>
-
-        <Text className="text-gray-200 text-sm mt-1">
-          Premium coffee delivered fresh
-        </Text>
+        </View> <View >
+      {/* You can also use user.uid, user.displayName, etc. */}
+    </View>
       </View>
     </View>
   );

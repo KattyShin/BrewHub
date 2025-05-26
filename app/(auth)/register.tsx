@@ -50,7 +50,8 @@ export default function SignUpScreen() {
       router.push('/(auth)');
     } catch (error) {
       console.error(error);
-      Alert.alert('Registration Error', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      Alert.alert('Registration Error', errorMessage);
     }
   };
 
