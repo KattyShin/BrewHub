@@ -2,14 +2,17 @@ import { View, Text } from "react-native";
 import React from "react";
 import Header from "../header";
 import { useAuth } from "contexts/Auth"; // adjust the path
+import { useLocalSearchParams } from "expo-router";
 
 const Home = () => {
+  const { username } = useLocalSearchParams(); //  Get the username from the login screen
+
   return (
     <View>
       {/* Header */}
       <View
         style={{
-          backgroundColor: "#D97706",
+          backgroundColor: '#D97706',
           paddingHorizontal: 16,
           paddingVertical: 16,
         }}

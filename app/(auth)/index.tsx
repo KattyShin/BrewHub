@@ -6,15 +6,31 @@ import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import Logo from '~/assets/images/brewhub.png';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '~/firebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '~/firebaseConfig'; // db = getFirestore(app)
 
 export default function LoginScreen() {
-  const [email, setEmail] = React.useState('');
+  const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const router = useRouter();
 
   async function handleLogin() {
     try {
+      // Lookup the email from Firestore using the username
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        Alert.alert('Login Error', 'Username not found');
+        return;
+      }
+
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
+      const email = userData.email;
+
+      //  Log in with email + password
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/Menu/home'); // Adjust path if needed
     } catch (error) {
@@ -35,13 +51,12 @@ export default function LoginScreen() {
       <Text style={styles.title}>Log-in Account</Text>
 
       <View style={styles.formContainer}>
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.label}>Username</Text>
         <TextInput
-          value={email}
-          onChangeText={setEmail}
+          value={username}
+          onChangeText={setUsername}
           style={styles.input}
-          placeholder="Enter your email"
-          keyboardType="email-address"
+          placeholder="Enter your username"
         />
 
         <Text style={styles.label}>Password</Text>
