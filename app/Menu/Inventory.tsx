@@ -37,7 +37,7 @@ export default function BrewHub() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<CoffeeTab>("hot");
+  const [activeTab, setActiveTab] = useState<CoffeeTab>("iced");
   const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
@@ -223,7 +223,7 @@ export default function BrewHub() {
       >
         {/* Products List */}
 
-        <View className="px-4">
+        <View className="px-2">
           {filteredItems.length === 0 ? (
             <View className="flex items-center justify-center py-8">
               <Text className="text-gray-500 text-lg">No coffee found</Text>
@@ -282,10 +282,9 @@ export default function BrewHub() {
             ))
           )}
         </View>
-      {/* Bottom spacing */}
-      <View className="h-20" />
+        {/* Bottom spacing */}
+        <View className="h-20" />
       </ScrollView>
-
     </SafeAreaView>
   );
 }
