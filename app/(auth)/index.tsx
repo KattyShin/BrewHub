@@ -21,6 +21,9 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "~/firebaseConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "../stores/authstore";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "~/firebaseConfig";
+
 
 export default function LoginScreen() {
   const [email, setEmail] = React.useState("");
@@ -78,43 +81,68 @@ export default function LoginScreen() {
   };
 
   async function handleLogin() {
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
+  const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  let emailToLogin = email;
 
-    if (!isEmailValid || !isPasswordValid) {
-      return;
-    }
-
-    setIsLoading(true);
+  // If it's not an email, assume it's a username
+  if (!isEmailFormat) {
+    // Fetch email from Firestore using the username
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      useAuthStore.getState().setUser(userCredential.user);
-      router.push('/Menu/home');
+      const userSnapshot = await getDocs(
+        query(
+          collection(db, "users"),
+          where("username", "==", email)
+        )
+      );
 
-    } catch (error) {
-      let errorMessage = "Login failed. Please try again.";
-
-      // Handle specific Firebase errors
-      switch ((error as { code: string }).code) {
-        case "auth/user-not-found":
-          errorMessage = "No account found with this email.";
-          break;
-        case "auth/wrong-password":
-          errorMessage = "Incorrect password.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Invalid email address.";
-          break;
-        case "auth/too-many-requests":
-          errorMessage = "Too many failed attempts. Please try again later.";
-          break;
+      if (userSnapshot.empty) {
+        Alert.alert("Login Error", "No account found with this username.");
+        return;
       }
 
-      Alert.alert("Login Error", errorMessage);
-    } finally {
-      setIsLoading(false);
+      // Assuming usernames are unique
+      const userDoc = userSnapshot.docs[0];
+      emailToLogin = userDoc.data().email;
+    } catch (error) {
+      Alert.alert("Login Error", "Failed to retrieve email for this username.");
+      return;
     }
   }
+
+  const isEmailValid = validateEmail(emailToLogin);
+  const isPasswordValid = validatePassword(password);
+
+  if (!isEmailValid || !isPasswordValid) {
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
+    useAuthStore.getState().setUser(userCredential.user);
+    router.push("/Menu/Home");
+  } catch (error) {
+    let errorMessage = "Login failed. Please try again.";
+    switch ((error as { code: string }).code) {
+      case "auth/user-not-found":
+        errorMessage = "No account found with this email.";
+        break;
+      case "auth/wrong-password":
+        errorMessage = "Incorrect password.";
+        break;
+      case "auth/invalid-email":
+        errorMessage = "Invalid email address.";
+        break;
+      case "auth/too-many-requests":
+        errorMessage = "Too many failed attempts. Please try again later.";
+        break;
+    }
+    Alert.alert("Login Error", errorMessage);
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 
   function handleCreateAccount() {
     router.push("/register");
@@ -155,7 +183,7 @@ export default function LoginScreen() {
             <View style={styles.formContainer}>
               {/* Email Input */}
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email Address</Text>
+                <Text style={styles.label}>Email or Username</Text>
                 <View
                   style={[styles.inputWrapper, emailError && styles.inputError]}
                 >
@@ -172,7 +200,7 @@ export default function LoginScreen() {
                       if (emailError) validateEmail(text);
                     }}
                     style={styles.input}
-                    placeholder="Enter your email"
+                    placeholder="Enter your email or username"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"
@@ -229,9 +257,10 @@ export default function LoginScreen() {
               {/* Forgot Password */}
               <Pressable
                 style={styles.forgotPassword}
-              >
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </Pressable>
+                onPress={() => router.push("/forgetpass")} 
+>
+                <Text style={styles.forgotPasswordText}>Forgot Password? </Text>
+                </Pressable>
 
               {/* Login Button */}
               <Button
