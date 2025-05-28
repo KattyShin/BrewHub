@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Alert,StatusBar } from "react-native";
 import {
   BarChart3,
@@ -20,8 +20,31 @@ import { Card, CardContent } from "components/ui/card";
 import "~/global.css";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from '~/firebaseConfig';
 
 const Settings = () => {
+  const [userInfo, setUserInfo] = useState({ username: "", email: "" });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const uid = user.uid;
+          const userDoc = await getDoc(doc(db, "users", uid));
+          if (userDoc.exists()) {
+            setUserInfo(userDoc.data());
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup
+  }, []);
+
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
       {
@@ -201,23 +224,27 @@ const Settings = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Enhanced User Profile Section */}
-        <View className="bg-[#D97706] px-5 py-4 rounded-b-2xl shadow-lg"
-        >
-          <View className="flex flex-row items-center">
-            <View className="w-16 h-16 rounded-2xl flex items-center justify-center mr-4 bg-black">
-              <Text className="text-white font-bold text-xl">KT</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="text-white font-bold text-xl mb-1">
-                Katty Torres
-              </Text>
-              <Text className="text-gray-200 text-base mb-2">
-                caballes@gmail.com
-              </Text>
-            </View>
-          </View>
-        </View>
+        <View className="bg-[#D97706] px-4 pt-8 pb-6 mb-6">
+  <View className="flex-row items-center">
+    {/* Avatar */}
+    <View className="w-14 h-14 rounded-full bg-green-100 justify-center items-center mr-4">
+      <Text className="text-green-800 font-bold text-lg">NY</Text>
+    </View>
+
+    {/* Username and Email */}
+    <View>
+      <Text className="text-white font-semibold text-base">
+        {userInfo.username}
+      </Text>
+      <Text className="text-white text-sm">
+        {userInfo.email}
+      </Text>
+    </View>
+  </View>
+</View>
+
+
+
 
         <View className="px-6">
           {/* Reports & Analytics Section */}
