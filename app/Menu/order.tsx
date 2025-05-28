@@ -35,7 +35,7 @@ interface Product {
   description: string;
   price: number;
   category: string;
-  imagePath: string; // Added imagePath to the interface
+  imagePath: string;
 }
 
 interface CartItem extends Product {
@@ -72,7 +72,7 @@ export default function BrewHub() {
             description: data.description,
             price: data.price,
             category: data.category,
-            imagePath: data.imagePath || "", // Add imagePath from Firestore
+            imagePath: data.imagePath || "",
           });
         });
         setProducts(items);
@@ -91,7 +91,7 @@ export default function BrewHub() {
     (item) =>
       item.category === activeTab &&
       (item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchText.toLowerCase()))
+        item.description.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   const addToCart = (item: Product) => {
@@ -189,155 +189,154 @@ export default function BrewHub() {
       </View>
 
       {/* Search Bar */}
-      <View style={{ paddingHorizontal: 20, paddingVertical: 16, marginTop: 4 }}>
-        <View style={{ position: "relative" }}>
+      <View className="px-5 py-4">
+        <View className="relative">
           <TextInput
             value={searchText}
             onChangeText={setSearchText}
             placeholder="Search coffee..."
-            placeholderTextColor="#9CA3AF"
-            className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-gray-100 shadow-sm text-base"
+            className="w-full pl-10 pr-4 py-3 bg-white rounded-lg border border-gray-200 shadow-sm"
           />
-          <View style={{ position: "absolute", left: 14, top: 16 }}>
-            <Search size={20} color="#9CA3AF" />
+          <View className="absolute left-3 top-3">
+            <Search size={20} color="#6B7280" />
           </View>
         </View>
       </View>
 
       {/* Tab Navigation */}
-      <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-        <View className="flex flex-row bg-gray-200 p-1 mt-2">
-          <Pressable
-            onPress={() => setActiveTab("iced")}
-            className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
-              activeTab === "iced" ? "bg-white" : "bg-transparent"
-            }`}
-          >
-            <Snowflake
-              size={16}
-              color={activeTab === "iced" ? "#000" : "#6B7280"}
-              className="mr-1"
-            />
-            <Text
-              className={`ml-2 font-medium ${
-                activeTab === "iced" ? "text-black" : "text-gray-600"
+      <View className="px-5 mb-4">
+        <View className="flex flex-row bg-gray-200 p-1">
+          {["iced", "hot"].map((tab) => (
+            <Pressable
+              key={tab}
+              onPress={() => setActiveTab(tab as CoffeeTab)}
+              className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
+                activeTab === tab ? "bg-white" : "bg-transparent"
               }`}
             >
-              Iced Coffee
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setActiveTab("hot")}
-            className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
-              activeTab === "hot" ? "bg-white" : "bg-transparent"
-            }`}
-          >
-            <Coffee
-              size={16}
-              color={activeTab === "hot" ? "#000" : "#6B7280"}
-              className="mr-1"
-            />
-            <Text
-              className={`ml-2 font-medium ${
-                activeTab === "hot" ? "text-black" : "text-gray-600"
-              }`}
-            >
-              Hot Coffee
-            </Text>
-          </Pressable>
+              {tab === "iced" ? (
+                <Snowflake
+                  size={16}
+                  color={activeTab === "iced" ? "#000" : "#6B7280"}
+                />
+              ) : (
+                <Coffee
+                  size={16}
+                  color={activeTab === "hot" ? "#000" : "#6B7280"}
+                />
+              )}
+              <Text
+                className={`ml-2 font-medium ${
+                  activeTab === tab ? "text-black" : "text-gray-600"
+                }`}
+              >
+                {tab === "iced" ? "Iced Coffee" : "Hot Coffee"}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
-      {/* Product List */}
+      {/* Product List - Updated to match products page design */}
       <ScrollView
-        style={{ flex: 1, paddingHorizontal: 20 }}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
       >
-        {filteredItems.map((item) => (
-          <View
-            key={item.id}
-            className="bg-white rounded-2xl p-5 mb-5 shadow-md border border-gray-50"
-          >
-            <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-              {/* Product Image - Display if imagePath exists */}
-              {item.imagePath ? (
-                <Image
-                  source={{ uri: item.imagePath }}
-                  className="w-20 h-20 rounded-xl mr-4"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="w-20 h-20 bg-[#FEF3C7] rounded-xl items-center justify-center mr-4">
-                  {item.category === "iced" ? (
-                    <Snowflake size={32} color="#D97706" />
-                  ) : (
-                    <Coffee size={32} color="#D97706" />
-                  )}
-                </View>
-              )}
-
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="text-lg font-bold text-gray-800 mb-1">
-                  {item.name}
-                </Text>
-
-                <Text className="text-gray-600 text-sm mb-2 leading-5">
-                  {item.description}
-                </Text>
+        <View className="px-2">
+          {filteredItems.length === 0 ? (
+            <View className="flex items-center justify-center py-16">
+              <View className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <Coffee size={32} color="#EF4444" />
               </View>
-
-              <View className="flex items-end ml-4">
-                <Text className="text-[#D97706] font-bold text-xl">
-                  ${item.price.toFixed(2)}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => addToCart(item)}
-              className="bg-[#D97706] rounded-lg py-3 mt-4 flex flex-row items-center justify-center"
-              activeOpacity={0.8}
-            >
-              <Plus size={18} color="white" className="mr-1" />
-              <Text className="text-white text-base font-semibold ml-1">
-                Add to Cart
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-
-        {filteredItems.length === 0 && (
-          <View className="flex-1 items-center justify-center p-6 mt-10">
-            <View className="bg-white rounded-2xl p-8 items-center shadow-md border border-gray-50">
-              {activeTab === "iced" ? (
-                <Snowflake size={56} color="#D1D5DB" />
-              ) : (
-                <Coffee size={56} color="#D1D5DB" />
-              )}
-              <Text className="text-gray-800 text-xl font-semibold mt-5 mb-2">
+              <Text className="text-gray-600 text-xl font-medium mb-2">
                 No coffee found
               </Text>
-              <Text className="text-gray-500 text-center">
-                Try a different search term or browse our other category
+              <Text className="text-gray-400 text-sm text-center max-w-xs">
+                Try adjusting your search terms or check back later for new
+                additions
               </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setSearchText("");
-                  setActiveTab(activeTab === "iced" ? "hot" : "iced");
-                }}
-                className="mt-5 bg-gray-100 py-3 px-6 rounded-lg"
-              >
-                <Text className="text-gray-700 font-medium">
-                  Switch to {activeTab === "iced" ? "Hot" : "Iced"} Coffee
-                </Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        )}
+          ) : (
+            <View className="space-y-3">
+              {filteredItems.map((item) => (
+                <View
+                  key={item.id}
+                  className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden mb-2"
+                >
+                  <View className="flex flex-row ">
+                    {/* Image Section */}
+                    <View className="relative">
+                      {item.imagePath ? (
+                        <Image
+                          source={{ uri: item.imagePath }}
+                          style={{
+                            width: 100,
+                            height: 120,
+                            backgroundColor: "#f3f4f6",
+                          }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            width: 100,
+                            height: 120,
+                            backgroundColor: "#f3f4f6",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          {item.category === "iced" ? (
+                            <Snowflake size={24} color="#9CA3AF" />
+                          ) : (
+                            <Coffee size={24} color="#9CA3AF" />
+                          )}
+                          <Text className="text-gray-400 text-xs mt-1">
+                            No Image
+                          </Text>
+                        </View>
+                      )}
+                      {/* Price Badge */}
+                      <View className="absolute top-2 right-2 bg-amber-500 px-2 py-1 rounded-lg">
+                        <Text className="text-white text-xs font-bold">
+                          ₱{item.price.toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
 
-        <View style={{ height: 20 }} />
+                    {/* Content Section */}
+                    <View style={{ flex: 1 }} className="p-4 justify-between">
+                      <View>
+                        <Text className="text-lg font-bold text-gray-800 mb-1">
+                          {item.name}
+                        </Text>
+                        <Text
+                          className="text-gray-600 text-sm leading-5"
+                          numberOfLines={2}
+                        >
+                          {item.description}
+                        </Text>
+                      </View>
+
+                      {/* Add to Cart Button */}
+                      <TouchableOpacity
+                        onPress={() => addToCart(item)}
+                        className="bg-amber-500 rounded-lg py-2 mt-3 flex flex-row  items-center justify-center"
+                        activeOpacity={0.7}
+                      >
+                        <Plus size={18} color="white" className="mr-1" />
+                        <Text className="text-white text-sm font-medium">
+                          Add to Cart
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

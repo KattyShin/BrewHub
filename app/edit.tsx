@@ -109,6 +109,9 @@ export default function EditProduct() {
       {
         text: "Cancel",
         style: "cancel",
+        onPress: () => {
+          router.push("/Menu/inventory");
+        }
       },
       {
         text: "OK",

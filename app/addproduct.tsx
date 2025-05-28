@@ -73,7 +73,7 @@ export default function AddProduct() {
 
   const onSubmit = async (data: ProductFormData) => {
     Alert.alert("Confirm", "Are you sure you want to add this product?", [
-      { text: "Cancel", style: "cancel" },
+      { text: "Cancel", style: "cancel" , onPress: () => {router.push("/Menu/inventory")} },
       {
         text: "OK",
         onPress: async () => {
@@ -89,6 +89,7 @@ export default function AddProduct() {
             });
 
             Alert.alert("Success", "Product added successfully!");
+            router.push("/Menu/inventory");
             reset();
             setImage(null);
           } catch (error) {

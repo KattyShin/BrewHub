@@ -218,7 +218,7 @@ export default function BrewHub() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
       >
-        <View className="px-2">
+        <View className="px-2 pb-2">
           {filteredItems.length === 0 ? (
             <View className="flex items-center justify-center py-16">
               <View className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -232,9 +232,9 @@ export default function BrewHub() {
           ) : (
             <View className="space-y-3">
               {filteredItems.map((item, index) => (
-                <Card key={item.id} className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden">
+                <Card key={item.id} className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden mb-2">
                   <CardContent className="p-0">
-                    <View className="flex flex-row">
+                    <View className="flex flex-row ">
                       {/* Image Section */}
                       <View className="relative">
                         {item.imagePath ? (

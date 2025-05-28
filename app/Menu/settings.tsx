@@ -15,6 +15,7 @@ import {
   Bell,
   Shield,
   HelpCircle,
+  CircleUserRound
 } from "lucide-react-native";
 import { Card, CardContent } from "components/ui/card";
 import "~/global.css";
@@ -34,7 +35,8 @@ const Settings = () => {
           const uid = user.uid;
           const userDoc = await getDoc(doc(db, "users", uid));
           if (userDoc.exists()) {
-            setUserInfo(userDoc.data());
+            const userData = userDoc.data() as { username: string; email: string };
+            setUserInfo(userData);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -139,7 +141,7 @@ const Settings = () => {
                 Monthly Sales
               </Text>
               <Text className="text-gray-500 text-sm">
-                Monthly analytics & trends
+                Monthly Sales overview
               </Text>
             </View>
             <ChevronRight size={20} color="#9CA3AF" />
@@ -203,7 +205,7 @@ const Settings = () => {
                 Transactions
               </Text>
               <Text className="text-gray-500 text-sm">
-                Payment history & details
+                Payment history 
               </Text>
             </View>
             <ChevronRight size={20} color="#9CA3AF" />
@@ -228,7 +230,8 @@ const Settings = () => {
   <View className="flex-row items-center">
     {/* Avatar */}
     <View className="w-14 h-14 rounded-full bg-green-100 justify-center items-center mr-4">
-      <Text className="text-green-800 font-bold text-lg">NY</Text>
+       <CircleUserRound  size={20} color="#23A347"/>
+      
     </View>
 
     {/* Username and Email */}

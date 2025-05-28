@@ -120,7 +120,7 @@ export default function LoginScreen() {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
     useAuthStore.getState().setUser(userCredential.user);
-    router.push("/Menu/Home");
+    router.push("/Menu/home");
   } catch (error) {
     let errorMessage = "Login failed. Please try again.";
     switch ((error as { code: string }).code) {
