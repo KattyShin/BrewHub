@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -10,22 +11,26 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ChevronLeft, Calendar, DollarSign, Clock } from "lucide-react-native";
-import { collection, query, where, getDocs, doc } from "firebase/firestore";
+import { ChevronLeft, Calendar, DollarSign, Clock, CreditCard } from "lucide-react-native";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "~/firebaseConfig";
 import { useAuthStore } from "../stores/authstore";
 
-interface SaleItem {
+interface Transaction {
   id: string;
-  sales_date: Date;
-  daily_tot_sales: number;
-  transid: string;
+  amount: number;
+  change: number;
+  orderRef: string;
+  payment_date: Date;
+  total_paid: number;
+  orderId?: string;
+  customerName?: string;
 }
 
-const DailySales = () => {
+const TransactionHistory = () => {
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
-  const [salesData, setSalesData] = useState<SaleItem[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -34,51 +39,69 @@ const DailySales = () => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
     if (!user?.uid) return;
 
-    const fetchSalesData = async () => {
+    const fetchTransactions = async () => {
       try {
+        // First get all orders for this user
         const userRef = doc(db, "users", user.uid);
-        const salesQuery = query(
-          collection(db, "sales_report"),
+        const ordersQuery = query(
+          collection(db, "order"),
           where("userRef", "==", userRef)
         );
 
-        const querySnapshot = await getDocs(salesQuery);
-        const sales: SaleItem[] = [];
+        const ordersSnapshot = await getDocs(ordersQuery);
+        const transactionsData: Transaction[] = [];
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          // Make sure to properly handle the timestamp conversion
-          const salesDate = data.sales_date?.toDate
-            ? data.sales_date.toDate()
-            : new Date();
+        // For each order, find its transactions
+        for (const orderDoc of ordersSnapshot.docs) {
+          const transactionsQuery = query(
+            collection(db, "payment_transaction"),
+            where("order", "==", doc(db, "order", orderDoc.id))
+          );
 
-          sales.push({
-            id: doc.id,
-            sales_date: salesDate,
-            daily_tot_sales: data.daily_tot_sales || 0,
-            transid: data.payment_transactionRef.id,
-          });
-        });
+          const transactionsSnapshot = await getDocs(transactionsQuery);
+          
+          for (const transactionDoc of transactionsSnapshot.docs) {
+            const data = transactionDoc.data();
+            const transaction: Transaction = {
+              id: transactionDoc.id,
+              amount: data.amount || 0,
+              change: data.change || 0,
+              orderRef: data.order?.path || "",
+              payment_date: data.payment_date?.toDate() || new Date(),
+              total_paid: data.total_paid || 0,
+            };
 
-        // Sort by date (newest first)
-        sales.sort((a, b) => b.sales_date.getTime() - a.sales_date.getTime());
-        setSalesData(sales);
+            // Fetch customer name if customerRef exists in order
+            const orderData = orderDoc.data();
+            if (orderData.customerRef) {
+              const customerDoc = await getDoc(doc(db, orderData.customerRef.path));
+              if (customerDoc.exists()) {
+                transaction.customerName = customerDoc.data().name || "Customer";
+              }
+            }
+
+            transactionsData.push(transaction);
+          }
+        }
+
+        // Sort by payment date (newest first)
+        transactionsData.sort((a, b) => b.payment_date.getTime() - a.payment_date.getTime());
+        setTransactions(transactionsData);
       } catch (error) {
-        console.error("Error fetching sales data:", error);
-        Alert.alert("Error", "Failed to load sales data");
+        console.error("Error fetching transactions:", error);
+        Alert.alert("Error", "Failed to load transaction history");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSalesData();
+    fetchTransactions();
   }, [user?.uid]);
 
   const formatCurrency = (amount: number): string => {
@@ -116,42 +139,38 @@ const DailySales = () => {
 
 
 
-  const renderSalesItem = ({ item }: { item: SaleItem }) => (
+  const renderTransactionItem = ({ item }: { item: Transaction }) => (
     <View
       className="bg-white rounded-lg shadow-md mb-4 p-4"
     >
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
           <View className="flex-row items-center mb-2">
-            <Calendar size={16} color="#266BE9" />
+            <CreditCard size={16} color="#266BE9" />
             <View className="ml-2">
-              <Text className="text-lg font-bold text-gray-900">
-                {formatDate(item.sales_date)}
+              <Text className="text-l font-bold text-gray-900">
+                Transaction # 
               </Text>
+              <Text className="text-m font-bold text-gray-500">
+              {item.id}              </Text>
               <Text className="text-sm text-gray-500">
-                {formatTime(item.sales_date)}
+                {formatDate(item.payment_date)} at {formatTime(item.payment_date)}
               </Text>
             </View>
           </View>
 
-          <View className="flex-row items-center">
-            <View className="bg-green-50 px-3 py-1 rounded-full border border-green-300">
-              <Text className="text-xs font-semibold text-green-600">
-                Transaction # {item.transid}
-              </Text>
-            </View>
-          </View>
+         
         </View>
 
         <View className="items-end">
           <View className="flex-row items-center mb-1">
             <DollarSign size={16} color="#D97706" />
             <Text className="text-xs text-orange-600 font-medium ml-1">
-              Total Sales
+              Amount
             </Text>
           </View>
           <Text className="text-2xl font-bold text-orange-600">
-            {formatCurrency(item.daily_tot_sales)}
+            {formatCurrency(item.total_paid)}
           </Text>
         </View>
       </View>
@@ -161,13 +180,13 @@ const DailySales = () => {
   const renderEmptyState = () => (
     <View className="flex-1 justify-center items-center py-20">
       <View className="bg-orange-100 rounded-full p-6 mb-4">
-        <DollarSign size={48} color="#D97706" />
+        <CreditCard size={48} color="#D97706" />
       </View>
       <Text className="text-xl font-semibold text-gray-900 mb-2">
-        No Sales Data
+        No Transactions Found
       </Text>
       <Text className="text-gray-600 text-center px-8 mb-6">
-        Your daily sales will appear here once you start recording transactions.
+        Your payment transactions will appear here once you start processing orders.
       </Text>
     </View>
   );
@@ -197,33 +216,31 @@ const DailySales = () => {
               Back
             </Text>
           </TouchableOpacity>
-          
-         
         </View>
 
         <View className="flex flex-row items-center">
           <View className="flex flex-row">
-            <Text className="text-white font-bold text-lg">DAILY</Text>
+            <Text className="text-white font-bold text-lg">TRANSACTION</Text>
             <Text className="text-white font-bold text-lg bg-black px-2">
-              SALES
+              HISTORY
             </Text>
           </View>
         </View>
         <Text className="text-gray-200 text-sm mt-1">
-          View your daily sales records
+          View your payment transaction records
         </Text>
       </View>
 
       {/* Content */}
       <FlatList
-        data={salesData}
-        renderItem={renderSalesItem}
+        data={transactions}
+        renderItem={renderTransactionItem}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={{
           padding: 20,
           paddingBottom: 100,
-          flexGrow: salesData.length === 0 ? 1 : 0,
+          flexGrow: transactions.length === 0 ? 1 : 0,
         }}
         showsVerticalScrollIndicator={false}
       />
@@ -231,4 +248,4 @@ const DailySales = () => {
   );
 };
 
-export default DailySales;
+export default TransactionHistory;

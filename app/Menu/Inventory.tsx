@@ -1,6 +1,6 @@
 import "~/global.css";
 import React, { useState, useEffect } from "react";
-import { Search, Coffee, Snowflake, Edit, Trash2 } from "lucide-react-native";
+import { Search, Coffee, Snowflake, Edit,Trash2 } from "lucide-react-native";
 import { Card, CardContent, CardTitle } from "components/ui/card";
 import {
   View,
@@ -12,6 +12,8 @@ import {
   Alert,
   StatusBar,
   SafeAreaView,
+  Animated,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import Header from "../header";
@@ -28,8 +30,8 @@ type Product = {
   description: string;
   price: number;
   rating?: number;
-  category: "iced" | "hot" | string; // assuming category corresponds to coffee tabs
-  users?: string; // Ensure users is an array
+  category: "iced" | "hot" | string;
+  users?: string;
 };
 
 export default function BrewHub() {
@@ -39,15 +41,17 @@ export default function BrewHub() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<CoffeeTab>("iced");
   const [searchText, setSearchText] = useState("");
+  const [editButtonScale] = useState(new Animated.Value(1));
+  const [deleteButtonScale] = useState(new Animated.Value(1));
+  const [addButtonScale] = useState(new Animated.Value(1));
 
   useEffect(() => {
     if (!user?.uid) return;
-    // Create reference to the user document
     const userRef = doc(db, "users", user.uid);
 
     const q = query(
       collection(db, "products"),
-      where("user", "==", userRef) // Must match reference
+      where("user", "==", userRef)
     );
 
     const unsubscribe = onSnapshot(
@@ -75,7 +79,7 @@ export default function BrewHub() {
 
     return () => unsubscribe();
   }, [user?.uid]);
-  // Filter products based on activeTab and search text
+
   const filteredItems = products.filter(
     (item) =>
       item.category === activeTab &&
@@ -83,7 +87,31 @@ export default function BrewHub() {
         item.description.toLowerCase().includes(searchText.toLowerCase()))
   );
 
+  const animateButtonPress = (buttonType: 'edit' | 'delete') => {
+    const scaleValue = buttonType === 'edit' ? editButtonScale : deleteButtonScale;
+    
+    Animated.sequence([
+      Animated.timing(scaleValue, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleValue, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handleEditPress = (id: string) => {
+    animateButtonPress('edit');
+    router.push(`/edit?id=${id}`);
+  };
+
   const handleDelete = (id: string) => {
+    animateButtonPress('delete');
+    
     Alert.alert(
       "Confirm Delete",
       "Are you sure you want to delete this product?",
@@ -94,7 +122,6 @@ export default function BrewHub() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Firestore delete
               await import("firebase/firestore").then(
                 async ({ doc, deleteDoc }) => {
                   const docRef = doc(db, "products", id);
@@ -115,20 +142,25 @@ export default function BrewHub() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-[#fef7ed]">
-        <Text>Loading products...</Text>
+        <View className="bg-white p-8 rounded-2xl shadow-lg items-center">
+          <ActivityIndicator size="large" color="#D97706" className="mb-4" />
+          <Coffee size={40} color="#D97706" className="mb-4" />
+          <Text className="text-gray-800 text-xl font-semibold mb-2">
+            Loading your inventory...
+          </Text>
+          <Text className="text-gray-500 text-center">
+            Fetching your products
+          </Text>
+        </View>
       </View>
     );
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fef7ed" }}>
-      <View>
-        <Text>Welcome, {user?.email}!</Text>
-        <Text>User ID: {user?.uid}</Text>
-      </View>
       <StatusBar
-        barStyle="light-content" // or "dark-content" depending on your background
-        backgroundColor="#D97706" // match your header color
+        barStyle="light-content"
+        backgroundColor="#D97706"
       />
       <View
         style={{
@@ -160,16 +192,20 @@ export default function BrewHub() {
         </View>
       </View>
 
-      {/* Add Product Button */}
+      {/* Add Product Button with Animation */}
       <View className="p-2 flex flex-row justify-end">
-        <TouchableOpacity
-          className="bg-black w-40 px-4 py-3 rounded-lg"
-          onPress={() => router.push("/addproduct")}
-        >
-          <Text className="text-white font-medium text-center">
-            Add Product
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            className="bg-black w-40 px-4 py-3 rounded-lg"
+            onPress={() => {
+              animateButtonPress('edit');
+              router.push("/addproduct");
+            }}
+            activeOpacity={0.8}
+          >
+            <Text className="text-white font-medium text-center">
+              Add Product
+            </Text>
+          </TouchableOpacity>
       </View>
 
       {/* Tab Navigation */}
@@ -221,8 +257,6 @@ export default function BrewHub() {
         style={{ flex: 1, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Products List */}
-
         <View className="px-2">
           {filteredItems.length === 0 ? (
             <View className="flex items-center justify-center py-8">
@@ -239,12 +273,14 @@ export default function BrewHub() {
               >
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center gap-4">
-                    {/* Coffee Icon */}
-                    <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
-                      {item.category === "iced" ? <Snowflake /> : <Coffee />}
+                    <View className="w-20 h-20 bg-[#FEF3C7] rounded-xl items-center justify-center mr-4">
+                      {item.category === "iced" ? (
+                        <Snowflake size={32} color="#D97706" />
+                      ) : (
+                        <Coffee size={32} color="#D97706" />
+                      )}
                     </View>
 
-                    {/* Coffee Details */}
                     <View style={{ flex: 1 }}>
                       <CardTitle className="text-black text-lg mb-1">
                         {item.name}
@@ -254,35 +290,38 @@ export default function BrewHub() {
                       </Text>
                     </View>
 
-                    {/* Price */}
                     <Text className="text-orange-600 font-bold text-lg">
                       ₱{item.price.toFixed(1)}
                     </Text>
                   </View>
 
-                  {/* Action Buttons */}
                   <View className="flex flex-row justify-end mt-4 gap-2">
-                    <TouchableOpacity
-                      className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
-                      onPress={() => router.push(`/edit?id=${item.id}`)}
-                    >
-                      <Edit size={16} color="white" />
-                      <Text className="text-white ml-2">Edit</Text>
-                    </TouchableOpacity>
+                    <Animated.View style={{ transform: [{ scale: editButtonScale }] }}>
+                      <TouchableOpacity
+                        className="bg-[#D97706] px-4 py-2 rounded-lg flex flex-row items-center"
+                        onPress={() => handleEditPress(item.id)}
+                        activeOpacity={0.8}
+                      >
+                        <Edit size={16} color="white" />
+                        <Text className="text-white ml-2">Edit</Text>
+                      </TouchableOpacity>
+                    </Animated.View>
 
-                    <TouchableOpacity
-                      className="bg-red-500 px-4 py-2 rounded-lg flex flex-row items-center"
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Trash2 size={16} color="white" />
-                    </TouchableOpacity>
+                    <Animated.View style={{ transform: [{ scale: deleteButtonScale }] }}>
+                      <TouchableOpacity
+                        className="bg-red-500 px-4 py-2 rounded-lg flex flex-row items-center"
+                        onPress={() => handleDelete(item.id)}
+                        activeOpacity={0.8}
+                      >
+                        <Trash2 size={16} color="white" />
+                      </TouchableOpacity>
+                    </Animated.View>
                   </View>
                 </CardContent>
               </Card>
             ))
           )}
         </View>
-        {/* Bottom spacing */}
         <View className="h-20" />
       </ScrollView>
     </SafeAreaView>

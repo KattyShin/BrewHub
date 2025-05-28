@@ -8,13 +8,16 @@ import {
   SafeAreaView,
   StatusBar,
   Pressable,
+  ActivityIndicator,
+  Animated,
 } from "react-native";
 import {
   Search,
   ShoppingCart,
-  Star,
   Coffee,
   Snowflake,
+  Plus,
+  ArrowLeft,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import Header from "../header";
@@ -30,7 +33,6 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  rating: number;
   category: string;
 }
 
@@ -48,15 +50,13 @@ export default function BrewHub() {
   const [showCart, setShowCart] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addButtonScale] = useState(new Animated.Value(1));
 
   useEffect(() => {
     if (!user?.uid) return;
 
     const userRef = doc(db, "users", user.uid);
-    const q = query(
-      collection(db, "products"),
-      where("user", "==", userRef)
-    );
+    const q = query(collection(db, "products"), where("user", "==", userRef));
 
     const unsubscribe = onSnapshot(
       q,
@@ -70,7 +70,6 @@ export default function BrewHub() {
             description: data.description,
             price: data.price,
             category: data.category,
-            rating: data.rating || 4.5,
           });
         });
         setProducts(items);
@@ -93,6 +92,20 @@ export default function BrewHub() {
   );
 
   const addToCart = (item: Product) => {
+    // Animate button press
+    Animated.sequence([
+      Animated.timing(addButtonScale, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(addButtonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
       if (existingItem) {
@@ -125,37 +138,41 @@ export default function BrewHub() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-[#fef7ed]">
-        <Text>Loading products...</Text>
+        <View className="bg-white p-8 rounded-2xl shadow-lg items-center">
+          <ActivityIndicator size="large" color="#D97706" className="mb-4" />
+          <Coffee size={40} color="#D97706" className="mb-4" />
+          <Text className="text-gray-800 text-xl font-semibold mb-2">
+            Brewing your coffee...
+          </Text>
+          <Text className="text-gray-500 text-center">
+            Loading your favorite drinks
+          </Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF7ED" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FEF7ED" }}>
       <StatusBar barStyle="light-content" backgroundColor="#D97706" />
 
-      <View>
-        <Text>Welcome, {user?.email}!</Text>
-        <Text>User ID: {user?.uid}</Text>
-      </View>
-
-      <View
-        style={{
-          backgroundColor: "#D97706",
-          paddingHorizontal: 16,
-          paddingVertical: 16,
-        }}
-      >
+      {/* Header */}
+      <View className="bg-[#D97706] px-5 py-4 rounded-b-2xl shadow-lg">
         <View className="flex flex-row items-center justify-between">
           <Header />
 
           <TouchableOpacity
             onPress={() => setShowCart(true)}
-            style={{ position: "relative" }}
+            style={{
+              position: "relative",
+              backgroundColor: "rgba(255,255,255,0.2)",
+              padding: 10,
+              borderRadius: 12,
+            }}
           >
             <ShoppingCart color="white" size={24} />
             {getTotalItems() > 0 && (
-              <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[20px] h-5 flex items-center justify-center">
+              <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[22px] h-[22px] flex items-center justify-center">
                 <Text className="text-white text-xs font-bold">
                   {getTotalItems()}
                 </Text>
@@ -169,125 +186,149 @@ export default function BrewHub() {
         </Text>
       </View>
 
-      <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+      {/* Search Bar */}
+      <View
+        style={{ paddingHorizontal: 20, paddingVertical: 16, marginTop: 4 }}
+      >
         <View style={{ position: "relative" }}>
           <TextInput
             value={searchText}
             onChangeText={setSearchText}
             placeholder="Search coffee..."
             placeholderTextColor="#9CA3AF"
-            className="w-full pl-10 pr-4 py-3 bg-white rounded-lg border border-gray-200 shadow-sm text-base"
+            className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-gray-100 shadow-sm text-base"
           />
-          <View style={{ position: "absolute", left: 12, top: 12 }}>
-            <Search size={18} color="#9CA3AF" />
+          <View style={{ position: "absolute", left: 14, top: 16 }}>
+            <Search size={20} color="#9CA3AF" />
           </View>
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-        <View className="flex flex-row bg-gray-200 p-1 mt-2">
-          <Pressable
-            onPress={() => setActiveTab("iced")}
-            className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
-              activeTab === "iced" ? "bg-white" : "bg-transparent"
-            }`}
-          >
-            <Snowflake
-              size={16}
-              color={activeTab === "iced" ? "#000" : "#6B7280"}
-              className="mr-1"
-            />
-            <Text
-              className={`ml-2 font-medium ${
-                activeTab === "iced" ? "text-black" : "text-gray-600"
-              }`}
-            >
-              Iced Coffee
-            </Text>
-          </Pressable>
+      {/* Tab Navigation */}
+            <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+              <View className="flex flex-row bg-gray-200 p-1 mt-2 ">
+                <Pressable
+                  onPress={() => setActiveTab("iced")}
+                  className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
+                    activeTab === "iced" ? "bg-white" : "bg-transparent"
+                  }`}
+                >
+                  <Snowflake
+                    size={16}
+                    color={activeTab === "iced" ? "#000" : "#6B7280"}
+                    className="mr-1"
+                  />
+                  <Text
+                    className={`ml-2 font-medium ${
+                      activeTab === "iced" ? "text-black" : "text-gray-600"
+                    }`}
+                  >
+                    Iced Coffee
+                  </Text>
+                </Pressable>
+      
+                <Pressable
+                  onPress={() => setActiveTab("hot")}
+                  className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
+                    activeTab === "hot" ? "bg-white" : "bg-transparent"
+                  }`}
+                >
+                  <Coffee
+                    size={16}
+                    color={activeTab === "hot" ? "#000" : "#6B7280"}
+                    className="mr-1"
+                  />
+                  <Text
+                    className={`ml-2 font-medium ${
+                      activeTab === "hot" ? "text-black" : "text-gray-600"
+                    }`}
+                  >
+                    Hot Coffee
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
 
-          <Pressable
-            onPress={() => setActiveTab("hot")}
-            className={`flex-1 rounded py-2 px-3 flex flex-row items-center justify-center ${
-              activeTab === "hot" ? "bg-white" : "bg-transparent"
-            }`}
-          >
-            <Coffee
-              size={16}
-              color={activeTab === "hot" ? "#000" : "#6B7280"}
-              className="mr-1"
-            />
-            <Text
-              className={`ml-2 font-medium ${
-                activeTab === "hot" ? "text-black" : "text-gray-600"
-              }`}
-            >
-              Hot Coffee
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
+      {/* Product List */}
       <ScrollView
-        style={{ flex: 1, paddingHorizontal: 16 }}
+        style={{ flex: 1, paddingHorizontal: 20 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
         {filteredItems.map((item) => (
           <View
             key={item.id}
-            className="bg-white rounded-lg p-4 mb-4 shadow-md"
+            className="bg-white rounded-2xl p-5 mb-5 shadow-md border border-gray-50"
           >
             <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-              <View className="w-14 h-14 bg-gray-200 rounded items-center justify-center mr-5">
-                {item.category === "iced" ? <Snowflake /> : <Coffee />}
+              <View className="w-20 h-20 bg-[#FEF3C7] rounded-xl items-center justify-center mr-4">
+                {item.category === "iced" ? (
+                  <Snowflake size={32} color="#D97706" />
+                ) : (
+                  <Coffee size={32} color="#D97706" />
+                )}
               </View>
 
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text className="text-lg font-bold text-gray-800 mb-1">
                   {item.name}
                 </Text>
-                <Text className="text-gray-600 text-sm mb-2">
+
+                <Text className="text-gray-600 text-sm mb-2 leading-5">
                   {item.description}
                 </Text>
-                <View className="flex flex-row items-center mt-1 bg-black rounded-full px-2 py-1 w-24">
-                  <Star size={16} fill="#FFC918" />
-                  <Text className="text-white text-xs">Best Selling</Text>
-                </View>
               </View>
 
               <View className="flex items-end ml-4">
-                <Text className="text-[#D97706] font-bold text-lg mx-2">
-                  ${item.price.toFixed(1)}
+                <Text className="text-[#D97706] font-bold text-xl">
+                  ${item.price.toFixed(2)}
                 </Text>
               </View>
             </View>
 
-            <TouchableOpacity
-              onPress={() => addToCart(item)}
-              className="bg-[#D97706] rounded-lg py-2 mt-4 flex items-center"
-            >
-              <Text className="text-white text-base font-semibold">
-                Add to Cart
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => addToCart(item)}
+                className="bg-[#D97706] rounded-lg py-3 mt-4 flex flex-row items-center justify-center"
+                activeOpacity={0.8}
+              >
+                <Plus size={18} color="white" className="mr-1" />
+                <Text className="text-white text-base font-semibold ml-1">
+                  Add to Cart
+                </Text>
+              </TouchableOpacity>
           </View>
         ))}
 
         {filteredItems.length === 0 && (
-          <View className="flex-1 items-center justify-center p-4">
-            {activeTab === "iced" ? (
-              <Snowflake size={48} color="#9CA3AF" />
-            ) : (
-              <Coffee size={48} color="#9CA3AF" />
-            )}
-            <Text className="text-gray-600 text-lg mt-4">
-              No coffee found
-            </Text>
-            <Text className="">Try a different search term</Text>
+          <View className="flex-1 items-center justify-center p-6 mt-10">
+            <View className="bg-white rounded-2xl p-8 items-center shadow-md border border-gray-50">
+              {activeTab === "iced" ? (
+                <Snowflake size={56} color="#D1D5DB" />
+              ) : (
+                <Coffee size={56} color="#D1D5DB" />
+              )}
+              <Text className="text-gray-800 text-xl font-semibold mt-5 mb-2">
+                No coffee found
+              </Text>
+              <Text className="text-gray-500 text-center">
+                Try a different search term or browse our other category
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchText("");
+                  setActiveTab(activeTab === "iced" ? "hot" : "iced");
+                }}
+                className="mt-5 bg-gray-100 py-3 px-6 rounded-lg"
+              >
+                <Text className="text-gray-700 font-medium">
+                  Switch to {activeTab === "iced" ? "Hot" : "Iced"} Coffee
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
-        <View />
+        <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
   );

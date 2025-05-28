@@ -90,6 +90,9 @@ export default function EditProduct() {
       {
         text: "Cancel",
         style: "cancel",
+        onPress: () => {
+          router.push("/Menu/inventory"); // Navigate back to inventory
+        },
       },
       {
         text: "OK",

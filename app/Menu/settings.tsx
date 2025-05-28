@@ -34,7 +34,7 @@ const Settings = () => {
         onPress: () => {
           // Add your logout logic here
           console.log("User logged out");
-          // Example: navigation.navigate('Login') or clear auth tokens
+          router.push("/"); // Redirect to login page
         },
       },
     ]);
@@ -59,7 +59,7 @@ const Settings = () => {
   const handleTransactions = () => {
     console.log("Navigating to Transactions");
     // Add navigation logic for Transactions
-    // Example: router.push("/transactions");
+     router.push("/sales/transaction");
   };
 
   // Daily Sales Component
@@ -202,7 +202,8 @@ const Settings = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Enhanced User Profile Section */}
-        <View className="bg-[#D97706] px-4 py-4 mb-6">
+        <View className="bg-[#D97706] px-5 py-4 rounded-b-2xl shadow-lg"
+        >
           <View className="flex flex-row items-center">
             <View className="w-16 h-16 rounded-2xl flex items-center justify-center mr-4 bg-black">
               <Text className="text-white font-bold text-xl">KT</Text>
