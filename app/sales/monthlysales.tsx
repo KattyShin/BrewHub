@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,80 +6,88 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Dimensions,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  ChevronLeft,
-  Calendar,
-  TrendingUp,
-  DollarSign,
-  Clock,
-  Plus,
-} from "lucide-react-native";
+import { ChevronLeft, Calendar, DollarSign } from "lucide-react-native";
+import { collection, query, where, getDocs, doc } from "firebase/firestore";
+import { db } from "~/firebaseConfig";
+import { useAuthStore } from "../stores/authstore";
 
-const { width } = Dimensions.get("window");
+interface MonthlySale {
+  id: string;
+  month: string;
+  year: string;
+  totalSales: number;
+  transactionCount: number;
+}
 
 const MonthlySales = () => {
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
-  const [salesData, setSalesData] = useState([
-    {
-      id: "1",
-      month: "2025-01",
-      monthName: "January 2025",
-      totalSales: 7542.75,
-      transactionCount: 312,
-      dailyAverage: 243.31,
-      status: "completed",
-    },
-    {
-      id: "2",
-      month: "2024-12",
-      monthName: "December 2024",
-      totalSales: 8195.5,
-      transactionCount: 398,
-      dailyAverage: 264.37,
-      status: "completed",
-    },
-    {
-      id: "3",
-      month: "2024-11",
-      monthName: "November 2024",
-      totalSales: 6812.25,
-      transactionCount: 267,
-      dailyAverage: 227.08,
-      status: "completed",
-    },
-    {
-      id: "4",
-      month: "2024-10",
-      monthName: "October 2024",
-      totalSales: 7235.0,
-      transactionCount: 289,
-      dailyAverage: 233.39,
-      status: "completed",
-    },
-    {
-      id: "5",
-      month: "2024-09",
-      monthName: "September 2024",
-      totalSales: 6985.8,
-      transactionCount: 278,
-      dailyAverage: 232.86,
-      status: "completed",
-    },
-  ]);
+  const [monthlyData, setMonthlyData] = useState<MonthlySale[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  interface SaleItem {
-    id: string;
-    month: string;
-    monthName: string;
-    totalSales: number;
-    transactionCount: number;
-    dailyAverage: number;
-    status: string;
-  }
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const fetchSalesData = async () => {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const salesQuery = query(
+          collection(db, "sales_report"),
+          where("userRef", "==", userRef)
+        );
+
+        const querySnapshot = await getDocs(salesQuery);
+        const monthlySalesMap = new Map<string, MonthlySale>();
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const salesDate = data.sales_date?.toDate
+            ? data.sales_date.toDate()
+            : new Date();
+            
+          const month = salesDate.toLocaleString('default', { month: 'long' });
+          const year = salesDate.getFullYear().toString();
+          const key = `${month}-${year}`;
+          
+          const amount = data.daily_tot_sales || 0;
+
+          if (monthlySalesMap.has(key)) {
+            const existing = monthlySalesMap.get(key)!;
+            existing.totalSales += amount;
+            existing.transactionCount += 1;
+          } else {
+            monthlySalesMap.set(key, {
+              id: key,
+              month,
+              year,
+              totalSales: amount,
+              transactionCount: 1
+            });
+          }
+        });
+
+        // Convert map to array and sort by year and month (newest first)
+        const monthlySales = Array.from(monthlySalesMap.values()).sort((a, b) => {
+          const dateA = new Date(`${a.month} 1, ${a.year}`);
+          const dateB = new Date(`${b.month} 1, ${b.year}`);
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        setMonthlyData(monthlySales);
+      } catch (error) {
+        console.error("Error fetching sales data:", error);
+        Alert.alert("Error", "Failed to load sales data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalesData();
+  }, [user?.uid]);
 
   const formatCurrency = (amount: number): string => {
     return `₱${amount.toLocaleString("en-PH", {
@@ -88,100 +96,40 @@ const MonthlySales = () => {
     })}`;
   };
 
-  const formatMonth = (monthString: string): string => {
-    const [year, month] = monthString.split("-");
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    const currentDate = new Date();
+ 
 
-    if (
-      date.getFullYear() === currentDate.getFullYear() &&
-      date.getMonth() === currentDate.getMonth()
-    ) {
-      return "This Month";
-    } else if (
-      date.getFullYear() === currentDate.getFullYear() &&
-      date.getMonth() === currentDate.getMonth() - 1
-    ) {
-      return "Last Month";
-    } else {
-      return date.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
-    }
-  };
-
-  const salesStats = useMemo(() => {
-    const totalSales = salesData.reduce(
-      (sum, item) => sum + item.totalSales,
-      0
-    );
-    const totalTransactions = salesData.reduce(
-      (sum, item) => sum + item.transactionCount,
-      0
-    );
-    const averageMonthlySale =
-      salesData.length > 0 ? totalSales / salesData.length : 0;
-    const highestMonthlySale = Math.max(
-      ...salesData.map((item) => item.totalSales)
-    );
-
-    return {
-      totalSales,
-      totalTransactions,
-      averageMonthlySale,
-      highestMonthlySale,
-    };
-  }, [salesData]);
-
-  const handleSalePress = (item: SaleItem) => {
-    Alert.alert(
-      "Monthly Sales Details",
-      `Month: ${formatMonth(item.month)}\nTransactions: ${
-        item.transactionCount
-      }\nDaily Average: ${formatCurrency(
-        item.dailyAverage
-      )}\nTotal: ${formatCurrency(item.totalSales)}`,
-      [{ text: "OK" }]
-    );
-  };
-
-  const renderSalesItem = ({ item }: { item: SaleItem }) => (
-    <TouchableOpacity onPress={() => handleSalePress(item)} activeOpacity={0.7}>
-      <View className="bg-white rounded-lg shadow-md mb-4 p-4">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1">
-            <View className="flex-row items-center mb-2">
-              <Calendar size={16} color="#266BE9" />
-              <Text className="text-lg font-bold text-gray-900 ml-2">
-                {formatMonth(item.month)}
+  const renderMonthItem = ({ item }: { item: MonthlySale }) => (
+    <View
+      className="bg-white rounded-lg shadow-md mb-4 p-4"
+    >
+      <View className="flex-row justify-between items-start">
+        <View className="flex-1">
+          <View className="flex-row items-center mb-2">
+            <Calendar size={16} color="#266BE9" />
+            <View className="ml-2">
+              <Text className="text-lg font-bold text-gray-900">
+                {item.month} {item.year}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                {item.transactionCount} transactions
               </Text>
             </View>
-
-           
-            <View className="flex-row items-center">
-              <View className="bg-green-50 px-3 py-1 rounded-full border border-green-300">
-                <Text className="text-xs font-semibold text-green-600">
-                  {item.transactionCount} transactions
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="items-end">
-            <View className="flex-row items-center mb-1">
-              <DollarSign size={16} color="#D97706" />
-              <Text className="text-xs text-orange-600 font-medium ml-1">
-                Monthly Total
-              </Text>
-            </View>
-            <Text className="text-2xl font-bold text-orange-600">
-              {formatCurrency(item.totalSales)}
-            </Text>
           </View>
         </View>
+
+        <View className="items-end">
+          <View className="flex-row items-center mb-1">
+            <DollarSign size={16} color="#D97706" />
+            <Text className="text-xs text-orange-600 font-medium ml-1">
+              Total Sales
+            </Text>
+          </View>
+          <Text className="text-2xl font-bold text-orange-600">
+            {formatCurrency(item.totalSales)}
+          </Text>
+        </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   const renderEmptyState = () => (
@@ -190,14 +138,21 @@ const MonthlySales = () => {
         <DollarSign size={48} color="#D97706" />
       </View>
       <Text className="text-xl font-semibold text-gray-900 mb-2">
-        No Monthly Sales Data
+        No Sales Data
       </Text>
       <Text className="text-gray-600 text-center px-8 mb-6">
-        Your monthly sales will appear here once you start recording
-        transactions.
+        Your monthly sales will appear here once you start recording transactions.
       </Text>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-orange-50">
+        <ActivityIndicator size="large" color="#D97706" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-orange-50">
@@ -227,23 +182,22 @@ const MonthlySales = () => {
           </View>
         </View>
         <Text className="text-gray-200 text-sm mt-1">
-          Premium coffee delivered fresh
+          View your monthly sales records
         </Text>
       </View>
 
       {/* Content */}
       <FlatList
-        data={salesData}
-        renderItem={renderSalesItem}
+        data={monthlyData}
+        renderItem={renderMonthItem}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={{
           padding: 20,
           paddingBottom: 100,
-          flexGrow: salesData.length === 0 ? 1 : 0,
+          flexGrow: monthlyData.length === 0 ? 1 : 0,
         }}
         showsVerticalScrollIndicator={false}
-        bounces={true}
       />
     </SafeAreaView>
   );

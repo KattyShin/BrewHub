@@ -262,6 +262,145 @@ export default function LoginScreen() {
   );
 }
 
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: "#D97706",
+//   },
+//   scrollContainer: {
+//     flexGrow: 1,
+//     justifyContent: "center",
+//     minHeight: "100%",
+//   },
+//   content: {
+//     flex: 1,
+//     paddingHorizontal: 24,
+//     paddingVertical: 40,
+//   },
+//   header: {
+//     alignItems: "center",
+//     marginBottom: 40,
+//   },
+//   logo: {
+//     width: 180,
+//     height: 45,
+//     marginBottom: 24,
+//   },
+//   welcomeText: {
+//     color: "white",
+//     fontSize: 32,
+//     fontWeight: "bold",
+//     marginBottom: 8,
+//     textAlign: "center",
+//   },
+//   subtitle: {
+//     color: "rgba(255, 255, 255, 0.8)",
+//     fontSize: 16,
+//     textAlign: "center",
+//   },
+//   formContainer: {
+//     width: "100%",
+//     maxWidth: 400,
+//     alignSelf: "center",
+//   },
+//   inputContainer: {
+//     marginBottom: 20,
+//   },
+//   label: {
+//     color: "white",
+//     fontSize: 16,
+//     fontWeight: "500",
+//     marginBottom: 8,
+//   },
+//   inputWrapper: {
+//     backgroundColor: "white",
+//     borderRadius: 5,
+//     flexDirection: "row",
+//     alignItems: "center",
+//     paddingHorizontal: 16,
+//     minHeight: 52,
+//     shadowColor: "#000",
+//     shadowOffset: {
+//       width: 0,
+//       height: 2,
+//     },
+//     shadowOpacity: 0.1,
+//     shadowRadius: 3.84,
+//     elevation: 5,
+//   },
+//   inputError: {
+//     borderWidth: 1,
+//     borderColor: "#EF4444",
+//   },
+//   inputIcon: {
+//     marginRight: 12,
+//   },
+//   input: {
+//     flex: 1,
+//     fontSize: 16,
+//     color: "#1F2937",
+//   },
+//   eyeIcon: {
+//     padding: 4,
+//   },
+//   errorText: {
+//     color: "#FEE2E2",
+//     fontSize: 14,
+//     marginTop: 4,
+//     marginLeft: 4,
+//   },
+//   forgotPassword: {
+//     alignSelf: "flex-end",
+//     marginBottom: 32,
+//     padding: 4,
+//   },
+//   forgotPasswordText: {
+//     color: "rgba(255, 255, 255, 0.9)",
+//     fontSize: 14,
+//     fontWeight: "500",
+//   },
+//   loginButton: {
+//     backgroundColor: "#1F2937",
+//     paddingVertical: 16,
+//     borderRadius: 12,
+//     marginBottom: 24,
+//     shadowColor: "#000",
+//     shadowOffset: {
+//       width: 0,
+//       height: 4,
+//     },
+//     shadowOpacity: 0.3,
+//     shadowRadius: 4.65,
+//     elevation: 8,
+//   },
+//   buttonDisabled: {
+//     opacity: 0.7,
+//   },
+//   loginButtonText: {
+//     color: "white",
+//     textAlign: "center",
+//     fontSize: 16,
+//     fontWeight: "600",
+//   },
+//   footer: {
+//     flexDirection: "row",
+//     justifyContent: "center",
+//     alignItems: "center",
+//     marginTop: 40,
+//     paddingBottom: 20,
+//   },
+//   footerText: {
+//     color: "rgba(255, 255, 255, 0.8)",
+//     fontSize: 16,
+//   },
+//   footerLink: {
+//     color: "white",
+//     fontSize: 16,
+//     fontWeight: "600",
+//     textDecorationLine: "underline",
+//   },
+// });
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -319,14 +458,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     minHeight: 52,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 5, // Use elevation for Android
   },
   inputError: {
     borderWidth: 1,
@@ -364,14 +496,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
+    elevation: 8, // Use elevation for Android
   },
   buttonDisabled: {
     opacity: 0.7,

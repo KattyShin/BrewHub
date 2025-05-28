@@ -47,6 +47,9 @@ export default function AddProduct() {
       {
         text: "Cancel",
         style: "cancel",
+        onPress: () => {
+          router.push("/Menu/inventory"); // Navigate back to inventory
+        },
       },
       {
         text: "OK",
@@ -62,6 +65,7 @@ export default function AddProduct() {
 
             });
             Alert.alert("Success", "Product added successfully!");
+            router.push("/Menu/inventory"); // Navigate back to inventory
             reset();
           } catch (error) {
             console.error("Error adding document: ", error);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,74 +6,81 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Dimensions,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  ChevronLeft,
-  Calendar,
-  TrendingUp,
-  DollarSign,
-  BarChart3,
-  Plus,
-} from "lucide-react-native";
+import { ChevronLeft, Calendar, DollarSign } from "lucide-react-native";
+import { collection, query, where, getDocs, doc } from "firebase/firestore";
+import { db } from "~/firebaseConfig";
+import { useAuthStore } from "../stores/authstore";
 
-const { width } = Dimensions.get("window");
+interface YearlySale {
+  id: string;
+  year: string;
+  totalSales: number;
+  transactionCount: number;
+}
 
 const YearlySales = () => {
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
-  const [salesData, setSalesData] = useState([
-    {
-      id: "1",
-      year: "2025",
-      totalSales: 89450.75,
-      transactionCount: 1250,
-      status: "completed",
-      growthRate: 12.5,
-    },
-    {
-      id: "2",
-      year: "2024",
-      totalSales: 79520.5,
-      transactionCount: 1180,
-      status: "completed",
-      growthRate: 8.3,
-    },
-    {
-      id: "3",
-      year: "2023",
-      totalSales: 73425.25,
-      transactionCount: 1095,
-      status: "completed",
-      growthRate: 15.2,
-    },
-    {
-      id: "4",
-      year: "2022",
-      totalSales: 63750.0,
-      transactionCount: 980,
-      status: "completed",
-      growthRate: 22.1,
-    },
-    {
-      id: "5",
-      year: "2021",
-      totalSales: 52200.8,
-      transactionCount: 850,
-      status: "completed",
-      growthRate: 18.7,
-    },
-  ]);
+  const [yearlyData, setYearlyData] = useState<YearlySale[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  interface SaleItem {
-    id: string;
-    year: string;
-    totalSales: number;
-    transactionCount: number;
-    status: string;
-    growthRate: number;
-  }
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const fetchSalesData = async () => {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const salesQuery = query(
+          collection(db, "sales_report"),
+          where("userRef", "==", userRef)
+        );
+
+        const querySnapshot = await getDocs(salesQuery);
+        const yearlySalesMap = new Map<string, YearlySale>();
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const salesDate = data.sales_date?.toDate
+            ? data.sales_date.toDate()
+            : new Date();
+            
+          const year = salesDate.getFullYear().toString();
+          const amount = data.daily_tot_sales || 0;
+
+          if (yearlySalesMap.has(year)) {
+            const existing = yearlySalesMap.get(year)!;
+            existing.totalSales += amount;
+            existing.transactionCount += 1;
+          } else {
+            yearlySalesMap.set(year, {
+              id: year,
+              year,
+              totalSales: amount,
+              transactionCount: 1
+            });
+          }
+        });
+
+        // Convert map to array and sort by year (newest first)
+        const yearlySales = Array.from(yearlySalesMap.values()).sort((a, b) => {
+          return parseInt(b.year) - parseInt(a.year);
+        });
+
+        setYearlyData(yearlySales);
+      } catch (error) {
+        console.error("Error fetching sales data:", error);
+        Alert.alert("Error", "Failed to load sales data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalesData();
+  }, [user?.uid]);
 
   const formatCurrency = (amount: number): string => {
     return `₱${amount.toLocaleString("en-PH", {
@@ -82,80 +89,47 @@ const YearlySales = () => {
     })}`;
   };
 
-  const formatYear = (yearString: string): string => {
-    const currentYear = new Date().getFullYear();
-    const year = parseInt(yearString);
-
-    if (year === currentYear) {
-      return `${yearString} (Current)`;
-    }
-    return yearString;
+  const handleYearPress = (item: YearlySale) => {
+    Alert.alert(
+      "Yearly Sales Details",
+      `Year: ${item.year}\nTotal Sales: ${formatCurrency(item.totalSales)}\nTransactions: ${item.transactionCount}`,
+      [{ text: "OK" }]
+    );
   };
 
-  const formatGrowthRate = (rate: number): string => {
-    const sign = rate >= 0 ? "+" : "";
-    return `${sign}${rate.toFixed(1)}%`;
-  };
-
-  const salesStats = useMemo(() => {
-    const totalSales = salesData.reduce(
-      (sum, item) => sum + item.totalSales,
-      0
-    );
-    const totalTransactions = salesData.reduce(
-      (sum, item) => sum + item.transactionCount,
-      0
-    );
-    const averageYearlySale =
-      salesData.length > 0 ? totalSales / salesData.length : 0;
-    const highestYearSale = Math.max(
-      ...salesData.map((item) => item.totalSales)
-    );
-
-    return {
-      totalSales,
-      totalTransactions,
-      averageYearlySale,
-      highestYearSale,
-    };
-  }, [salesData]);
-
-  const renderSalesItem = ({ item }: { item: SaleItem }) => (
-      <View className="bg-white rounded-lg shadow-md mb-4 p-4">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1">
-            <View className="flex-row items-center mb-2">
-              <Calendar size={18} color="#D97706" />
-              <Text className="text-xl font-bold text-gray-900 ml-2">
-                {formatYear(item.year)}
+  const renderYearItem = ({ item }: { item: YearlySale }) => (
+    <TouchableOpacity
+      onPress={() => handleYearPress(item)}
+      className="bg-white rounded-lg shadow-md mb-4 p-4"
+    >
+      <View className="flex-row justify-between items-start">
+        <View className="flex-1">
+          <View className="flex-row items-center mb-2">
+            <Calendar size={16} color="#266BE9" />
+            <View className="ml-2">
+              <Text className="text-lg font-bold text-gray-900">
+                {item.year}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                {item.transactionCount} transactions
               </Text>
             </View>
-
-            <View className="flex-row items-center justify-between">
-              <View className="bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-                <Text className="text-xs font-semibold text-orange-700">
-                  {item.transactionCount.toLocaleString()} transactions
-                </Text>
-              </View>
-
-             
-            </View>
-       
-
-          <View className="items-end ml-4">
-            <View className="flex-row items-center mb-1">
-              <DollarSign size={16} color="#D97706" />
-              <Text className="text-xs text-orange-600 font-medium ml-1">
-                Annual Sales
-              </Text>
-            </View>
-            <Text className="text-2xl font-bold text-orange-600">
-              {formatCurrency(item.totalSales)}
-            </Text>
           </View>
         </View>
+
+        <View className="items-end">
+          <View className="flex-row items-center mb-1">
+            <DollarSign size={16} color="#D97706" />
+            <Text className="text-xs text-orange-600 font-medium ml-1">
+              Total Sales
+            </Text>
+          </View>
+          <Text className="text-2xl font-bold text-orange-600">
+            {formatCurrency(item.totalSales)}
+          </Text>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderEmptyState = () => (
@@ -164,18 +138,25 @@ const YearlySales = () => {
         <DollarSign size={48} color="#D97706" />
       </View>
       <Text className="text-xl font-semibold text-gray-900 mb-2">
-        No Yearly Sales Data
+        No Sales Data
       </Text>
       <Text className="text-gray-600 text-center px-8 mb-6">
-        Your yearly sales performance will appear here once you have completed
-        annual records.
+        Your yearly sales will appear here once you start recording transactions.
       </Text>
     </View>
   );
 
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-orange-50">
+        <ActivityIndicator size="large" color="#D97706" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-orange-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#FEF7ED" />
+      <StatusBar barStyle="light-content" backgroundColor="#D97706" />
 
       {/* Header */}
       <View className="bg-[#D97706] px-5 py-4">
@@ -201,23 +182,22 @@ const YearlySales = () => {
           </View>
         </View>
         <Text className="text-gray-200 text-sm mt-1">
-          Annual performance overview
+          View your yearly sales records
         </Text>
       </View>
 
       {/* Content */}
       <FlatList
-        data={salesData}
-        renderItem={renderSalesItem}
+        data={yearlyData}
+        renderItem={renderYearItem}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={{
           padding: 20,
           paddingBottom: 100,
-          flexGrow: salesData.length === 0 ? 1 : 0,
+          flexGrow: yearlyData.length === 0 ? 1 : 0,
         }}
         showsVerticalScrollIndicator={false}
-        bounces={true}
       />
     </SafeAreaView>
   );
