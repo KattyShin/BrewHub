@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     color: "white",
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",

@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
   Alert,
   Image,
 } from "react-native";
@@ -111,6 +112,8 @@ export default function AddProduct() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       className="flex-1 bg-[#fef7ed]"
     >
+            <StatusBar barStyle="light-content" backgroundColor="#D97706" />
+      
       <ScrollView
         contentContainerStyle={{
           padding: 16,
