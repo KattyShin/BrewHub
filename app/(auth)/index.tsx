@@ -169,6 +169,9 @@ export default function LoginScreen() {
                 transform: [{ translateY: slideAnim }],
               },
             ]}
+
+            className="flex-1 justify-center min-h-screen"
+
           >
             {/* Header with Logo */}
             <View style={styles.header}>
@@ -456,7 +459,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     color: "white",
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",

@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  StatusBar,
   Image,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
@@ -28,6 +29,7 @@ export default function EditProduct() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
+  const [imageUri, setImageUri] = useState<string | null>(null); // Add this state
   const user = useAuthStore((state) => state.user);
 
   const {
@@ -36,6 +38,7 @@ export default function EditProduct() {
     reset,
     setValue,
     formState: { errors },
+    watch,
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -47,6 +50,8 @@ export default function EditProduct() {
     },
     mode: "onBlur",
   });
+
+  const currentImagePath = watch("imagePath"); // Watch the imagePath value
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -70,6 +75,7 @@ export default function EditProduct() {
           price: data.price?.toString() || "",
           imagePath: data.imagePath || "",
         });
+        setImageUri(data.imagePath || null); // Set the initial image URI
 
       } catch (error) {
         console.warn("Could not fetch product:", error);
@@ -83,8 +89,8 @@ export default function EditProduct() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: 1,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
     });
 
     if (!result.canceled && result.assets.length > 0) {
@@ -101,6 +107,7 @@ export default function EditProduct() {
       const newPath = `${newDir}/${fileName}`;
       await FileSystem.copyAsync({ from: pickedUri, to: newPath });
       setValue("imagePath", newPath);
+      setImageUri(newPath); // Update the image URI state
     }
   };
 
@@ -153,6 +160,8 @@ export default function EditProduct() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       className="flex-1 bg-[#fef7ed]"
     >
+            <StatusBar barStyle="light-content" backgroundColor="#D97706" />
+      
       <ScrollView
         contentContainerStyle={{
           padding: 16,
@@ -267,31 +276,23 @@ export default function EditProduct() {
               </Text>
             )}
 
-            <Controller
-              control={control}
-              name="imagePath"
-              render={({ field: { value } }) => (
-                <>
-                  <TouchableOpacity
-                    onPress={pickImage}
-                    className="mt-4 py-3 px-4 rounded-lg bg-blue-600 items-center"
-                  >
-                    <Text className="text-white font-semibold">
-                      {value ? "Change Image" : "Pick Image"}
-                    </Text>
-                  </TouchableOpacity>
-                  {errors.imagePath && (
-                    <Text className="text-red-500 text-sm mb-3">
-                      {errors.imagePath.message}
-                    </Text>
-                  )}
-                </>
-              )}
-            />
+            <TouchableOpacity
+              onPress={pickImage}
+              className="mt-4 py-3 px-4 rounded-lg bg-blue-600 items-center"
+            >
+              <Text className="text-white font-semibold">
+                {currentImagePath ? "Change Image" : "Pick Image"}
+              </Text>
+            </TouchableOpacity>
+            {errors.imagePath && (
+              <Text className="text-red-500 text-sm mb-3">
+                {errors.imagePath.message}
+              </Text>
+            )}
 
-            {control._formValues.imagePath && (
+            {(imageUri || currentImagePath) && (
               <Image
-                source={{ uri: control._formValues.imagePath }}
+                source={{ uri: imageUri || currentImagePath }}
                 style={{
                   width: "100%",
                   height: 200,

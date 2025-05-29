@@ -193,7 +193,6 @@ export default function SignUpScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={styles.safeArea}>
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
@@ -207,6 +206,8 @@ export default function SignUpScreen() {
                 transform: [{ translateY: slideAnim }],
               },
             ]}
+            className="flex-1 justify-center min-h-screen"
+
           >
            
             {/* Header with Logo */}
@@ -390,7 +391,6 @@ export default function SignUpScreen() {
             </View>
           </Animated.View>
         </ScrollView>
-      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -400,9 +400,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#D97706',
   },
-  safeArea: {
-    flex: 1,
-  },
+
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -427,7 +425,6 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 60,
     marginBottom: 40,
   },
   logo: {
@@ -437,7 +434,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     color: 'white',
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
